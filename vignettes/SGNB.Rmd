@@ -1,0 +1,41 @@
+---
+title: "Splicing Graph-based Negative Binomial Model"
+author: "Yang Liu"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Splicing Graph-based Negative Binomial Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+The splicing graph-based negative binomial model is designed for detecting differentially expressed(DE) genes under
+two conditions, e.g. normal and study.
+
+For doing such an analysis, we need only three steps.
+
+1. modify gene annotation file with modify_ann, which will generate block_ann list, gene_range list and gene_size list for later usage.
+
+1. summarize read in sam format, which is the output of TopHat, into read type data.frame with summarize_read_single_end or summarize_read_paired_end.
+
+1. fit model with fit_SGNB, which will provide p-value and expression level for each gene.
+
+## Example
+
+Here is a working example.
+
+Suppose we want to detect DE genes for human and our working directory is './'. We need to have a gene annotation 
+file for human, e.g. './human.gtf'. And assume we already maped the single end read by Tophat and have the sam files in two folders, e.g. './group0', './group1'.
+
+Then we can do the analysis as shown below.
+
+```r
+modify_ann('./human.gtf', line_skip, './block_ann.RData', './gene_range.RData', './gene_size.RData')
+load('./block_ann.RData')
+load('./gene_range.RData')
+load('./gene_size.RData')
+read_summarized <- summarize_read_single_end('./group0', './group1', block_ann, gene_range, run.parrallel = TRUE, core.num = 2)
+res <- fit_SGNB(read_summarized, gene_size, tol = 0.001, times = 100)
+```

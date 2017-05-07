@@ -1,0 +1,25 @@
+Package: SGNB
+Title: Splicing Graph-based Negative Binomial Model
+Version: 0.0.0.9000
+Authors@R: person("Yang", "Liu", email = "lylyf1987@gmail.com", role = c("aut", "cre"))
+Description: This package provides an isoform-free model for detecting
+    differentially expressed (DE) genes under two different conditions.
+    In this analysis, a gene is defined as a non-DE gene if and only if 
+    all its isoforms have the same expression level under two conditions.
+Depends:
+    R (>= 3.3.0)
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    Rcpp,
+    RcppArmadillo,
+    stringr,
+    parallel,
+    data.table
+LinkingTo: Rcpp, RcppArmadillo
+RoxygenNote: 6.0.1
+SystemRequirements: C++11
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
