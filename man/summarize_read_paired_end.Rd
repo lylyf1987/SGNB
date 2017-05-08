@@ -13,13 +13,13 @@ summarize_read_paired_end(input_sam_folder_path_0, input_sam_folder_path_1,
 
 \item{input_sam_folder_path_1}{A physical path to a folder of sam files under condition 1.}
 
-\item{block_ann_ls}{The block annotation file created by function \code{\link{modify_ann}}. If set to NULL,
-the function will use the block_ann file saved in the package data folder, which is for
-human. Default is NULL.}
+\item{block_ann_ls}{The block annotation list created by function \code{\link{modify_ann}}.
+If set to NULL, the function will use the block_ann file saved in the package data folder,
+which is for human. Default is NULL.}
 
-\item{gene_range_ls}{The gene range file created by function \code{\link{modify_ann}}. If set to NULL,
-the function will use the gene_range file saved in the package data folder, which is for
-human. Default is NULL.}
+\item{gene_range_ls}{The gene range lookup table list created by function \code{\link{modify_ann}}.
+If set to NULL, the function will use the gene_range file saved in the package data folder,
+which is for human. Default is NULL.}
 
 \item{run.parallel}{A logical variable. If TRUE, run in parallel mode. Default is TRUE.}
 

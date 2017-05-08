@@ -4,13 +4,13 @@
 #' gene range lookup table, and gene size lookup table, from the gene annotation
 #' file in gtf format downloaded form Ensembl for later analysis.
 #'
-#' The block annotation file has three levels. First is a list of chromosomes. Second is a list of
+#' The block annotation is a list has three levels. First is a list of chromosomes. Second is a list of
 #' genes. Third is a data frame of block annotations.
 #'
-#' The gene range file has two levels. First is a list of chromosomes. Second is a data frame of gene
-#' range information.
+#' The gene range lookup table is a list has two levels. First is a list of chromosomes.
+#' Second is a data frame of gene range information.
 #'
-#' The gene size file has one level, which is a list of gene size information.
+#' The gene size lookup table is a list has one level, which is a list of gene size information.
 #'
 #'@param gene_ann_path A physical path to gene annotation file in gtf format.
 #'@param line_skip The number of lines that need to be skipped when reading the gtf file. Default is 5.
@@ -55,10 +55,10 @@ modify_ann <- function(gene_ann_path, line_skip = 5, sep = '\t', gene_id = 'gene
 #'
 #' @param input_sam_folder_path_0 A physical path to a folder of sam files under condition 0.
 #' @param input_sam_folder_path_1 A physical path to a folder of sam files under condition 1.
-#' @param block_ann_ls The block annotation file in .RData format created by function \code{\link{modify_ann}}.
+#' @param block_ann_ls The block annotation list created by function \code{\link{modify_ann}}.
 #' If set to NULL, the function will use the block_ann file saved in the package data folder,
 #' which is for human. Default is NULL.
-#' @param gene_range_ls The gene range lookup table in .RData format created by function \code{\link{modify_ann}}.
+#' @param gene_range_ls The gene range lookup table list created by function \code{\link{modify_ann}}.
 #' If set to NULL, the function will use the gene_range file saved in the package data folder,
 #' which is for human. Default is NULL.
 #' @param run.parallel A logical variable. If TRUE, run in parallel mode. Default is TRUE.
@@ -186,12 +186,12 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
 #'
 #' @param input_sam_folder_path_0 A physical path to a folder of sam files under condition 0.
 #' @param input_sam_folder_path_1 A physical path to a folder of sam files under condition 1.
-#' @param block_ann_ls The block annotation file created by function \code{\link{modify_ann}}. If set to NULL,
-#'                     the function will use the block_ann file saved in the package data folder, which is for
-#'                     human. Default is NULL.
-#' @param gene_range_ls The gene range file created by function \code{\link{modify_ann}}. If set to NULL,
-#'                      the function will use the gene_range file saved in the package data folder, which is for
-#'                      human. Default is NULL.
+#' @param block_ann_ls The block annotation list created by function \code{\link{modify_ann}}.
+#' If set to NULL, the function will use the block_ann file saved in the package data folder,
+#' which is for human. Default is NULL.
+#' @param gene_range_ls The gene range lookup table list created by function \code{\link{modify_ann}}.
+#' If set to NULL, the function will use the gene_range file saved in the package data folder,
+#' which is for human. Default is NULL.
 #' @param run.parallel A logical variable. If TRUE, run in parallel mode. Default is TRUE.
 #' @param core.num CPU core numbers will be used if run.parallel is TRUE. Default is the number of all the cores.
 #'

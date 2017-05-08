@@ -32,13 +32,13 @@ gene range lookup table, and gene size lookup table, from the gene annotation
 file in gtf format downloaded form Ensembl for later analysis.
 }
 \details{
-The block annotation file has three levels. First is a list of chromosomes. Second is a list of
+The block annotation is a list has three levels. First is a list of chromosomes. Second is a list of
 genes. Third is a data frame of block annotations.
 
-The gene range file has two levels. First is a list of chromosomes. Second is a data frame of gene
-range information.
+The gene range lookup table is a list has two levels. First is a list of chromosomes.
+Second is a data frame of gene range information.
 
-The gene size file has one level, which is a list of gene size information.
+The gene size lookup table is a list has one level, which is a list of gene size information.
 }
 \examples{
 modify_ann("./Homo.gtf", 5, "./block_ann.RData", "./gene_range.RData", "./gene_size.RData")
