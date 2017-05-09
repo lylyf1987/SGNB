@@ -810,7 +810,7 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
         read_end = read_seq_vec.back();
 
         // get potential gene names
-        Rcpp::DataFrame chr_gene_range_df = gene_range[read_chr];
+        Rcpp::DataFrame chr_gene_range_df = Rcpp::as<Rcpp::DataFrame>(gene_range[read_chr]);
         Rcpp::CharacterVector chr_gene_range_id_vec = chr_gene_range_df["gene_id"];
         Rcpp::IntegerVector chr_gene_range_start_vec = chr_gene_range_df["gene_start"];
         Rcpp::IntegerVector chr_gene_range_end_vec = chr_gene_range_df["gene_end"];
@@ -824,7 +824,7 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
 
           // get block annotation for the gene
           Rcpp::List chr_block_ls = block_ann[read_chr];
-          Rcpp::DataFrame chr_gene_block_df = chr_block_ls[(*potential_gene_id_it)];
+          Rcpp::DataFrame chr_gene_block_df = Rcpp::as<Rcpp::DataFrame>(chr_block_ls[(*potential_gene_id_it)]);
           Rcpp::IntegerVector chr_gene_block_start = chr_gene_block_df["block_start"];
           Rcpp::IntegerVector chr_gene_block_end = chr_gene_block_df["block_end"];
           Rcpp::CharacterVector chr_gene_block_id = chr_gene_block_df["block_id"];
@@ -869,7 +869,9 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
         }
       }
       catch(...) {
-        Rcpp::Rcout << "read_id: " << read_id << '\t' << "read_chr: " << read_chr << std::endl;
+        Rcpp::Rcout << "summarize failure" << std::endl;
+        Rcpp::Rcout << "read_id: " << read_id << " | " << "read_chr: " << read_chr << std::endl;
+        Rcpp::Rcout << "==============================================================" << std::endl;
       }
     }
   }
