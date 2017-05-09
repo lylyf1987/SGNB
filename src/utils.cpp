@@ -735,8 +735,7 @@ Rcpp::List create_block_cpp(const Rcpp::DataFrame ann) {
 
 // summarize read into read type-----------------------------------
 //[[Rcpp::export]]
-Rcpp::DataFrame
-  create_read_type_cpp(const std::string& input_sam_path,
+Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
                                      const Rcpp::List block_ann,
                                      const Rcpp::List gene_range) {
 
