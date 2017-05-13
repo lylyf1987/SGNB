@@ -835,19 +835,15 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
           std::vector<std::string> read_block_id_vec;
           for (read_seq_vec_it = read_seq_vec.begin(); read_seq_vec_it != read_seq_vec.end(); ++read_seq_vec_it) {
             read_block_id_temp = chr_gene_block_id[(chr_gene_block_start <= (*read_seq_vec_it)) & (chr_gene_block_end >= (*read_seq_vec_it))];
-            if(read_block_id_temp.size() == 0)
-            {
-              break;
-            }
-            else if(read_block_id_temp.size() == 1)
-            {
+            if(read_block_id_temp.size() == 1) {
               read_block_id_vec.push_back(Rcpp::as<std::string>(read_block_id_temp[0]));
+            }
+            else if(read_block_id_temp.size() > 1) {
+              Rcpp::Rcout << "multiple block" << std::endl;
             }
           }
 
-          // check if a read is successfully mapped to blocks
-          if (read_block_id_vec.size() == read_seq_vec.size()) {
-
+          if (read_block_id_vec.size() != 0) {
             // get unique block id
             std::vector<std::string>::iterator read_block_id_vec_it;
             std::sort(read_block_id_vec.begin(), read_block_id_vec.end());
