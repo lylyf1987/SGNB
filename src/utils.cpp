@@ -839,7 +839,7 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
               read_block_id_vec.push_back(Rcpp::as<std::string>(read_block_id_temp[0]));
             }
             else if(read_block_id_temp.size() > 1) {
-              Rcpp::Rcout << "multiple block" << std::endl;
+              Rcpp::Rcout << "block overlap error" << std::endl;
             }
           }
 
