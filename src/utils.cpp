@@ -737,7 +737,8 @@ Rcpp::List create_block_cpp(const Rcpp::DataFrame ann) {
 //[[Rcpp::export]]
 Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
                                      const Rcpp::List block_ann,
-                                     const Rcpp::List gene_range) {
+                                     const Rcpp::List gene_range,
+                                       int minOverlap) {
 
   // output result
   std::vector<std::string> read_id_vec, read_type_vec, read_gene_vec;
@@ -843,7 +844,7 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
             }
           }
 
-          if (read_block_id_vec.size() != 0) {
+          if (read_block_id_vec.size() >= minOverlap) {
             // get unique block id
             std::vector<std::string>::iterator read_block_id_vec_it;
             std::sort(read_block_id_vec.begin(), read_block_id_vec.end());

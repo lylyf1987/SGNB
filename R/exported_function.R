@@ -74,7 +74,8 @@ modify_ann <- function(gene_ann_path, line_skip = 5, sep = '\t', gene_id = 'gene
 # summarize RNA-seq single end read-------------------------------------------------
 summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_path_1,
                                       block_ann_ls = NULL, gene_range_ls = NULL, run.parallel = TRUE,
-                                      core.num = parallel::detectCores()) {
+                                      core.num = parallel::detectCores(),
+                                      minOverlap = 1) {
 
   # get sam file path for group 0 and 1
   input_sam_file_path_0 <- list.files(path = input_sam_folder_path_0, pattern = '\\.sam', full.names = TRUE)
@@ -85,72 +86,72 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
   if (is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range_ls),
+                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range_ls, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range_ls)
+                                                                                                    block_ann, gene_range_ls, minOverlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range),
+                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range)
+                                                                                                    block_ann_ls, gene_range, minOverlap)
       }
     }
   }
   else if (is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range),
+                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range)
+                                                                                                    block_ann, gene_range, minOverlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range_ls),
+                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range_ls, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range_ls)
+                                                                                                    block_ann_ls, gene_range_ls, minOverlap)
       }
     }
   }
@@ -205,7 +206,8 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
 # summarize RNA-seq paired end read
 summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_path_1,
                                       block_ann_ls = NULL, gene_range_ls = NULL, run.parallel = TRUE,
-                                      core.num = parallel::detectCores()) {
+                                      core.num = parallel::detectCores(),
+                                      minOverlap = 1) {
 
   # get sam file path for group 0 and 1
   input_sam_file_path_0 <- list.files(path = input_sam_folder_path_0, pattern = '\\.sam', full.names = TRUE)
@@ -216,72 +218,72 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
   if (is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range_ls),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range_ls, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range_ls)
+                                                                                                    block_ann, gene_range_ls, minOverlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range)
+                                                                                                    block_ann_ls, gene_range, minOverlap)
       }
     }
   }
   else if (is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range)
+                                                                                                    block_ann, gene_range, minOverlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range_ls),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range_ls, minOverlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls, minOverlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range_ls)
+                                                                                                    block_ann_ls, gene_range_ls, minOverlap)
       }
     }
   }
