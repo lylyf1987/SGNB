@@ -49,12 +49,13 @@ TMM <- function(count_df, lib_size)
   trim_A <- 0.1
   res <- rep(NA, length(lib_size))
   res_len <- dim(count_df)[2]
+  ref_idx <- which(lib_size == median(lib_size))
   for(i in 1 : res_len)
   {
-    count_df_curr <- count_df[c(1, i)]
+    count_df_curr <- count_df[c(ref_idx, i)]
     count_df_curr <- count_df_curr[count_df_curr[[1]] > 0 & count_df_curr[[2]] > 0, ]
-    M <- log((count_df_curr[[2]] / lib_size[i]) / (count_df_curr[[1]] / lib_size[1]))
-    A <- abs((1 / 2) * log((count_df_curr[[2]] / lib_size[i]) * (count_df_curr[[1]] / lib_size[1])))
+    M <- log((count_df_curr[[2]] / lib_size[i]) / (count_df_curr[[1]] / lib_size[ref_idx]))
+    A <- abs((1 / 2) * log((count_df_curr[[2]] / lib_size[i]) * (count_df_curr[[1]] / lib_size[ref_idx])))
     count_df_curr <- cbind(count_df_curr, M, A)
     count_df_curr <- count_df_curr[order(count_df_curr$M, count_df_curr$A), ]
     l <- dim(count_df_curr)[1]
@@ -65,7 +66,7 @@ TMM <- function(count_df, lib_size)
     trim_size <- as.integer(l * trim_A)
     count_df_curr <- count_df_curr[(trim_size + 1) : (l - trim_size), ]
     weight <- (lib_size[i] - count_df_curr[[2]]) / (lib_size[i] * count_df_curr[[2]]) +
-              (lib_size[1] - count_df_curr[[1]]) / (lib_size[1] * count_df_curr[[1]])
+              (lib_size[ref_idx] - count_df_curr[[1]]) / (lib_size[ref_idx] * count_df_curr[[1]])
     weight <- 1 / weight
     logTMM <- (weight %*% count_df_curr[[3]]) / sum(weight)
     TMM_factor <- exp(logTMM)
