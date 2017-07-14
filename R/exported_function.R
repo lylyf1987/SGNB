@@ -335,6 +335,7 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
 #' @export
 # fit SGNB model-----------------------------------------------------------
 fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, tol = 0.001, times = 200) {
+  read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
   # detect sample number under two conditions
   sample_num_0 <- sum(stringr::str_detect(names(read_summarized_df), pattern = 'group0_'))
@@ -351,7 +352,6 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, tol = 0.001, times
   lib_size_norm <- lib_size * tmm_norm_factor
 
   # group read types
-  read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
   read_type_group_df <- create_read_type_group_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
                                                    read_summarized_df$read_type)
   read_summarized_dt <- data.table::data.table(read_summarized_df)
