@@ -128,11 +128,12 @@ arma::imat create_graph_matrix(const std::vector<std::string>& g_read_type_vec) 
 
 // create read type group for one gene----------------------------------------------------------
 arma::uvec create_read_type_group_g(const std::vector<std::string>& read_type,
-                                    const arma::imat& graph_matrix) {
+                                    const arma::imat& graph_matrix,
+                                    const double min_reduce) {
 
   // containers for result saving
   arma::uvec read_type_group(read_type.size(), arma::fill::zeros);
-
+  arma::uvec read_type_group_default(read_type.size(), arma::fill::ones);
   // remember grouped read types
   std::vector<std::string> read_type_grouped;
   unsigned int group_id, idx, idx_curr, idx_next;
@@ -171,8 +172,12 @@ arma::uvec create_read_type_group_g(const std::vector<std::string>& read_type,
       group_id++;
     }
   }
-
-  return read_type_group;
+  if (((double)read_type.size() - (double)group_id + 1) / (double)read_type.size() < min_reduce){
+    return read_type_group_default;
+  }
+  else{
+    return read_type_group;
+  }
 }
 
 // calculate initial value----------------------------------------------------------------------------
@@ -738,7 +743,7 @@ Rcpp::List create_block_cpp(const Rcpp::DataFrame ann) {
 Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
                                      const Rcpp::List block_ann,
                                      const Rcpp::List gene_range,
-                                       int minOverlap) {
+                                       int min_overlap) {
 
   // output result
   std::vector<std::string> read_id_vec, read_type_vec, read_gene_vec;
@@ -844,7 +849,7 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
             }
           }
 
-          if (read_block_id_vec.size() >= minOverlap) {
+          if (read_block_id_vec.size() >= min_overlap) {
             // get unique block id
             std::vector<std::string>::iterator read_block_id_vec_it;
             std::sort(read_block_id_vec.begin(), read_block_id_vec.end());
@@ -893,7 +898,8 @@ Rcpp::DataFrame create_read_type_cpp(const std::string& input_sam_path,
 //[[Rcpp::export]]
 Rcpp::DataFrame create_read_type_group_cpp(const std::vector<std::string>& read_gene_unique_vec,
                                            const std::vector<std::string>& read_gene_vec,
-                                           const std::vector<std::string>& read_type_vec) {
+                                           const std::vector<std::string>& read_type_vec,
+                                           double min_reduce) {
   // containers for result saving
   std::vector<std::string> res_gene_vec, res_read_type_vec;
   arma::uvec res_read_type_group_vec, read_type_group_vec;
@@ -901,7 +907,7 @@ Rcpp::DataFrame create_read_type_group_cpp(const std::vector<std::string>& read_
   // create read type group for each gene
   std::vector<std::string>::const_iterator read_gene_unique_vec_it;
   for (read_gene_unique_vec_it = read_gene_unique_vec.begin(); read_gene_unique_vec_it != read_gene_unique_vec.end();
-       ++ read_gene_unique_vec_it) {
+  ++ read_gene_unique_vec_it) {
     // find gene range
     unsigned int g_first, g_last;
     std::vector<std::string>::const_iterator g_first_it, g_last_it;
@@ -918,7 +924,7 @@ Rcpp::DataFrame create_read_type_group_cpp(const std::vector<std::string>& read_
     arma::imat g_graph_matrix = create_graph_matrix(g_read_type_vec);
 
     // create read type group
-    read_type_group_vec = create_read_type_group_g(g_read_type_vec, g_graph_matrix);
+    read_type_group_vec = create_read_type_group_g(g_read_type_vec, g_graph_matrix, min_reduce);
 
     // save result
     res_gene_vec.insert(res_gene_vec.end(), g_first_it, std::next(g_last_it, 1));

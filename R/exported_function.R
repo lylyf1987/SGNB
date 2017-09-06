@@ -63,7 +63,7 @@ modify_ann <- function(gene_ann_path, line_skip = 5, sep = '\t', gene_id = 'gene
 #' If set to NULL, the function will use the gene range lookup table saved in the package for human. Default is NULL.
 #' @param run.parallel A logical variable. If TRUE, run in parallel mode. Default is TRUE.
 #' @param core.num CPU core numbers will be used if run.parallel is TRUE. Default is the number of all the cores.
-#' @param minOverlap minimum overlap needed for summarizing read to read type, default is 1.
+#' @param min_overlap minimum overlap needed for summarizing read to read type, default is 1.
 #' @examples
 #' summarize_read_single_end("./group0", "./group1")
 #' summarize_read_single_end("./group0", "./group1", block_ann, gene_range)
@@ -75,7 +75,7 @@ modify_ann <- function(gene_ann_path, line_skip = 5, sep = '\t', gene_id = 'gene
 summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_path_1,
                                       block_ann_ls = NULL, gene_range_ls = NULL, run.parallel = TRUE,
                                       core.num = parallel::detectCores(),
-                                      minOverlap = 1) {
+                                      min_overlap = 1) {
 
   # get sam file path for group 0 and 1
   input_sam_file_path_0 <- list.files(path = input_sam_folder_path_0, pattern = '\\.sam', full.names = TRUE)
@@ -86,72 +86,72 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
   if (is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range_ls, minOverlap),
+                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range_ls, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range_ls, minOverlap)
+                                                                                                    block_ann, gene_range_ls, min_overlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range, minOverlap),
+                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range, minOverlap)
+                                                                                                    block_ann_ls, gene_range, min_overlap)
       }
     }
   }
   else if (is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range, minOverlap),
+                                                 function(x) summarize_read_single_end_each(x, block_ann, gene_range, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann, gene_range, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range, minOverlap)
+                                                                                                    block_ann, gene_range, min_overlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range_ls, minOverlap),
+                                                 function(x) summarize_read_single_end_each(x, block_ann_ls, gene_range_ls, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_single_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_single_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range_ls, minOverlap)
+                                                                                                    block_ann_ls, gene_range_ls, min_overlap)
       }
     }
   }
@@ -195,7 +195,7 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
 #' If set to NULL, the function will use the gene range lookup table saved in the package for human. Default is NULL.
 #' @param run.parallel A logical variable. If TRUE, run in parallel mode. Default is TRUE.
 #' @param core.num CPU core numbers will be used if run.parallel is TRUE. Default is the number of all the cores.
-#' @param minOverlap minimum overlap needed for summarizing read to read type, default is 1.
+#' @param min_overlap minimum overlap needed for summarizing read to read type, default is 1.
 #' @examples
 #' summarize_read_paired_end("./group0", "./group1")
 #' summarize_read_paired_end("./group0", "./group1", block_ann, gene_range)
@@ -207,7 +207,7 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
 summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_path_1,
                                       block_ann_ls = NULL, gene_range_ls = NULL, run.parallel = TRUE,
                                       core.num = parallel::detectCores(),
-                                      minOverlap = 1) {
+                                      min_overlap = 1) {
 
   # get sam file path for group 0 and 1
   input_sam_file_path_0 <- list.files(path = input_sam_folder_path_0, pattern = '\\.sam', full.names = TRUE)
@@ -218,72 +218,72 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
   if (is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range_ls, minOverlap),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range_ls, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range_ls, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range_ls, minOverlap)
+                                                                                                    block_ann, gene_range_ls, min_overlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range, minOverlap),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range, minOverlap)
+                                                                                                    block_ann_ls, gene_range, min_overlap)
       }
     }
   }
   else if (is.null(block_ann_ls) && is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range, minOverlap),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann, gene_range, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann, gene_range, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann, gene_range, minOverlap)
+                                                                                                    block_ann, gene_range, min_overlap)
       }
     }
   }
   else if (!is.null(block_ann_ls) && !is.null(gene_range_ls)) {
     if (run.parallel == TRUE) {
       read_summarized_list <- parallel::mclapply(c(input_sam_file_path_0, input_sam_file_path_1),
-                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range_ls, minOverlap),
+                                                 function(x) summarize_read_paired_end_each(x, block_ann_ls, gene_range_ls, min_overlap),
                                                  mc.cores = core.num)
     }
     else {
       for (i in 1 : length(input_sam_file_path_0)) {
         print(i)
-        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls, minOverlap)
+        read_summarized_list[[i]] <- summarize_read_paired_end_each(input_sam_file_path_0[i], block_ann_ls, gene_range_ls, min_overlap)
       }
       for (i in 1 : length(input_sam_file_path_1)) {
         print(i)
         read_summarized_list[[i + length(input_sam_file_path_0)]] <- summarize_read_paired_end_each(input_sam_file_path_1[i],
-                                                                                                    block_ann_ls, gene_range_ls, minOverlap)
+                                                                                                    block_ann_ls, gene_range_ls, min_overlap)
       }
     }
   }
@@ -322,19 +322,22 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
 #'                           \code{\link{summarize_read_paired_end}}.
 #' @param gene_size_ls The gene size file. If set it to NULL, the function will use the gene_size file saved in the
 #'                     package data folder, which is for human. Default is NULL.
+#' @param min_reduce A number between 0 and 1 indicating the minimum percentage of the number of parameters
+#'                   needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
+#'                   then group all read types into one read type. Default is 0.3.
 #' @param tol A numerical value to control estimation accuracy. Default is 0.001.
 #' @param times A numerical value to control estimation loop times. Default is 200.
 #'
 #' @examples
 #' fit_SGNB(read_summarized_df)
-#' fit_SGNB(read_summarized_df, gene_size, tol = 0.01, times = 500)
+#' fit_SGNB(read_summarized_df, gene_size, min_reduce, tol = 0.01, times = 500)
 #'
 #' @return A data.fram saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression
 #'         for condition 0 and 1.
 #'
 #' @export
 # fit SGNB model-----------------------------------------------------------
-fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, tol = 0.001, times = 200) {
+fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, tol = 0.001, times = 200) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
   # detect sample number under two conditions
@@ -353,13 +356,13 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, tol = 0.001, times
 
   # group read types
   read_type_group_df <- create_read_type_group_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
-                                                   read_summarized_df$read_type)
-  read_summarized_dt <- data.table::data.table(read_summarized_df)
+                                                   read_summarized_df$read_type, min_reduce)
+  read_count_dt <- data.table::data.table(read_summarized_df)
   read_type_group_dt <- data.table::data.table(read_type_group_df)
-  read_summarized_dt <- merge(read_summarized_dt, read_type_group_dt, by = c("read_gene", "read_type"))
-  read_summarized_dt[, read_type := NULL]
-  read_summarized_dt <- read_summarized_dt[, lapply(.SD, sum), by = c("read_gene", "read_type_group")]
-  read_summarized_df <- as.data.frame(read_summarized_dt)
+  read_count_dt <- merge(read_count_dt, read_type_group_dt, by = c("read_gene", "read_type"))
+  read_count_dt[, read_type := NULL]
+  read_count_dt <- read_count_dt[, lapply(.SD, sum), by = c("read_gene", "read_type_group")]
+  read_count_df <- as.data.frame(read_count_dt)
 
   # fit model
   if (is.null(gene_size_ls)) {

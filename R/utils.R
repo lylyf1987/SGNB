@@ -15,8 +15,8 @@ prepare_ann <- function(gene_ann_path, line_skip, sep, gene_id) {
 }
 
 # summarize single end read for one sam file-------------------------------
-summarize_read_single_end_each <- function(input_sam_file_path, block_ann, gene_range, minOverlap) {
-  read_type_df <- create_read_type_cpp(input_sam_file_path, block_ann, gene_range, minOverlap)
+summarize_read_single_end_each <- function(input_sam_file_path, block_ann, gene_range, min_overlap) {
+  read_type_df <- create_read_type_cpp(input_sam_file_path, block_ann, gene_range, min_overlap)
   read_type_dt <- data.table::data.table(read_type_df)
   temp <- read_type_dt[, length(read_type), by = "read_id"]
   read_type_dt <- merge(read_type_dt, temp, by = "read_id", all.x = TRUE)
@@ -27,8 +27,8 @@ summarize_read_single_end_each <- function(input_sam_file_path, block_ann, gene_
 }
 
 # summarize paired end read for one sam file-------------------------------
-summarize_read_paired_end_each <- function(input_sam_file_path, block_ann, gene_range, minOverlap) {
-  read_type_df <- create_read_type_cpp(input_sam_file_path, block_ann, gene_range, minOverlap)
+summarize_read_paired_end_each <- function(input_sam_file_path, block_ann, gene_range, min_overlap) {
+  read_type_df <- create_read_type_cpp(input_sam_file_path, block_ann, gene_range, min_overlap)
   read_type_dt <- data.table::data.table(read_type_df)
   temp <- read_type_dt[, length(read_type), by = "read_id"]
   read_type_dt <- merge(read_type_dt, temp, by = "read_id", all.x = TRUE)
@@ -49,7 +49,9 @@ TMM <- function(count_df, lib_size)
   trim_A <- 0.1
   res <- rep(NA, length(lib_size))
   res_len <- dim(count_df)[2]
-  ref_idx <- which(lib_size == median(lib_size))
+  lib_size_sort <- sort(lib_size)
+  middle_size <- lib_size_sort[((length(lib_size_sort) + 1) / 2)]
+  ref_idx <- which(lib_size == middle_size)
   for(i in 1 : res_len)
   {
     count_df_curr <- count_df[c(ref_idx, i)]
@@ -66,7 +68,7 @@ TMM <- function(count_df, lib_size)
     trim_size <- as.integer(l * trim_A)
     count_df_curr <- count_df_curr[(trim_size + 1) : (l - trim_size), ]
     weight <- (lib_size[i] - count_df_curr[[2]]) / (lib_size[i] * count_df_curr[[2]]) +
-              (lib_size[ref_idx] - count_df_curr[[1]]) / (lib_size[ref_idx] * count_df_curr[[1]])
+      (lib_size[ref_idx] - count_df_curr[[1]]) / (lib_size[ref_idx] * count_df_curr[[1]])
     weight <- 1 / weight
     logTMM <- (weight %*% count_df_curr[[3]]) / sum(weight)
     TMM_factor <- exp(logTMM)
