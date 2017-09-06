@@ -63,7 +63,7 @@ modify_ann <- function(gene_ann_path, line_skip = 5, sep = '\t', gene_id = 'gene
 #' If set to NULL, the function will use the gene range lookup table saved in the package for human. Default is NULL.
 #' @param run.parallel A logical variable. If TRUE, run in parallel mode. Default is TRUE.
 #' @param core.num CPU core numbers will be used if run.parallel is TRUE. Default is the number of all the cores.
-#'
+#' @param minOverlap minimum overlap needed for summarizing read to read type, default is 1.
 #' @examples
 #' summarize_read_single_end("./group0", "./group1")
 #' summarize_read_single_end("./group0", "./group1", block_ann, gene_range)
@@ -195,7 +195,7 @@ summarize_read_single_end <- function(input_sam_folder_path_0, input_sam_folder_
 #' If set to NULL, the function will use the gene range lookup table saved in the package for human. Default is NULL.
 #' @param run.parallel A logical variable. If TRUE, run in parallel mode. Default is TRUE.
 #' @param core.num CPU core numbers will be used if run.parallel is TRUE. Default is the number of all the cores.
-#'
+#' @param minOverlap minimum overlap needed for summarizing read to read type, default is 1.
 #' @examples
 #' summarize_read_paired_end("./group0", "./group1")
 #' summarize_read_paired_end("./group0", "./group1", block_ann, gene_range)
