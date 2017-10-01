@@ -4,8 +4,8 @@
 \alias{fit_SGNB}
 \title{Fit SGNB model}
 \usage{
-fit_SGNB(read_summarized_df, gene_size_ls = NULL, tol = 0.001,
-  times = 200)
+fit_SGNB(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3,
+  tol = 0.001, times = 200)
 }
 \arguments{
 \item{read_summarized_df}{The returned data.frame from function \code{\link{summarize_read_single_end}} or
@@ -13,6 +13,10 @@ fit_SGNB(read_summarized_df, gene_size_ls = NULL, tol = 0.001,
 
 \item{gene_size_ls}{The gene size file. If set it to NULL, the function will use the gene_size file saved in the
 package data folder, which is for human. Default is NULL.}
+
+\item{min_reduce}{A number between 0 and 1 indicating the minimum percentage of the number of parameters
+needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
+then group all read types into one read type. Default is 0.3.}
 
 \item{tol}{A numerical value to control estimation accuracy. Default is 0.001.}
 
@@ -28,6 +32,6 @@ level in a data.frame.
 }
 \examples{
 fit_SGNB(read_summarized_df)
-fit_SGNB(read_summarized_df, gene_size, tol = 0.01, times = 500)
+fit_SGNB(read_summarized_df, gene_size, min_reduce, tol = 0.01, times = 500)
 
 }

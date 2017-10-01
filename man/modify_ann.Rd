@@ -8,13 +8,13 @@ modify_ann(gene_ann_path, line_skip = 5, sep = "\\t", gene_id = "gene_id",
   block_ann_path, gene_range_path, gene_size_path)
 }
 \arguments{
-\item{gene_ann_path}{A physical path to gene annotation file in gtf format.}
+\item{gene_ann_path}{A physical path to gene annotation file in gtf format downloaded from Ensembl.}
 
-\item{line_skip}{The number of lines that need to be skipped when reading the gtf file. Default is 5.}
+\item{line_skip}{The number of lines that need to be skipped when reading the gene annotation file. Default is 5.}
 
 \item{sep}{The separation used in the gene annotation file. Default is tab.}
 
-\item{gene_id}{A fixed start string of gene id in the gene annotation file in gtf format downloaded from Ensembl.
+\item{gene_id}{A fixed start string of gene id in the gene annotation file column 9.
 Default is 'gene_id'.}
 
 \item{block_ann_path}{A physical path to save block annotation in .RData format.}
@@ -29,7 +29,7 @@ none.
 \description{
 This function creates 3 files in .RData format, which are block annotation,
 gene range lookup table, and gene size lookup table, from the gene annotation
-file in gtf format downloaded form Ensembl for later analysis.
+file in gtf format downloaded from Ensembl for later analysis.
 }
 \details{
 The block annotation is a list has three levels. First is a list of chromosomes. Second is a list of

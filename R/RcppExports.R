@@ -5,12 +5,12 @@ create_block_cpp <- function(ann) {
     .Call('SGNB_create_block_cpp', PACKAGE = 'SGNB', ann)
 }
 
-create_read_type_cpp <- function(input_sam_path, block_ann, gene_range) {
-    .Call('SGNB_create_read_type_cpp', PACKAGE = 'SGNB', input_sam_path, block_ann, gene_range)
+create_read_type_cpp <- function(input_sam_path, block_ann, gene_range, min_overlap) {
+    .Call('SGNB_create_read_type_cpp', PACKAGE = 'SGNB', input_sam_path, block_ann, gene_range, min_overlap)
 }
 
-create_read_type_group_cpp <- function(read_gene_unique_vec, read_gene_vec, read_type_vec) {
-    .Call('SGNB_create_read_type_group_cpp', PACKAGE = 'SGNB', read_gene_unique_vec, read_gene_vec, read_type_vec)
+create_read_type_group_cpp <- function(read_gene_unique_vec, read_gene_vec, read_type_vec, min_reduce) {
+    .Call('SGNB_create_read_type_group_cpp', PACKAGE = 'SGNB', read_gene_unique_vec, read_gene_vec, read_type_vec, min_reduce)
 }
 
 fit_SGNB_cpp <- function(read_gene_unique_vec, read_gene_vec, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times) {

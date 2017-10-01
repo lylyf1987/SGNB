@@ -6,24 +6,26 @@
 \usage{
 summarize_read_single_end(input_sam_folder_path_0, input_sam_folder_path_1,
   block_ann_ls = NULL, gene_range_ls = NULL, run.parallel = TRUE,
-  core.num = parallel::detectCores())
+  core.num = parallel::detectCores(), min_overlap = 1)
 }
 \arguments{
-\item{input_sam_folder_path_0}{A physical path to a folder of sam files under condition 0.}
+\item{input_sam_folder_path_0}{A physical path to a folder of mapped RNA-seq samples in .sam format
+under condition 0.}
 
-\item{input_sam_folder_path_1}{A physical path to a folder of sam files under condition 1.}
+\item{input_sam_folder_path_1}{A physical path to a folder of mapped RNA-seq samples in .sam format
+under condition 1.}
 
-\item{block_ann_ls}{The block annotation list created by function \code{\link{modify_ann}}.
-If set to NULL, the function will use the block_ann file saved in the package data folder,
-which is for human. Default is NULL.}
+\item{block_ann_ls}{The block annotation created by function \code{\link{modify_ann}}.
+If set to NULL, the function will use the block annotation saved in the package for human. Default is NULL.}
 
-\item{gene_range_ls}{The gene range lookup table list created by function \code{\link{modify_ann}}.
-If set to NULL, the function will use the gene_range file saved in the package data folder,
-which is for human. Default is NULL.}
+\item{gene_range_ls}{The gene range lookup table created by function \code{\link{modify_ann}}.
+If set to NULL, the function will use the gene range lookup table saved in the package for human. Default is NULL.}
 
 \item{run.parallel}{A logical variable. If TRUE, run in parallel mode. Default is TRUE.}
 
 \item{core.num}{CPU core numbers will be used if run.parallel is TRUE. Default is the number of all the cores.}
+
+\item{min_overlap}{minimum overlap needed for summarizing read to read type, default is 1.}
 }
 \value{
 A data.frame saving the summarized read.
