@@ -366,13 +366,13 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 
   # fit model
   if (is.null(gene_size_ls)) {
-    res <- fit_SGNB_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
-                        as.matrix(read_summarized_df[-c(1, 2)]), lib_size_norm, group_sample_num,
+    res <- fit_SGNB_cpp(unique(read_count_df$read_gene), read_count_df$read_gene,
+                        as.matrix(read_count_df[-c(1, 2)]), lib_size_norm, group_sample_num,
                         gene_size, tol, times)
   }
   else if (!is.null(gene_size_ls)) {
-    res <- fit_SGNB_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
-                        as.matrix(read_summarized_df[-c(1, 2)]), lib_size_norm, group_sample_num,
+    res <- fit_SGNB_cpp(unique(read_count_df$read_gene), read_count_df$read_gene,
+                        as.matrix(read_count_df[-c(1, 2)]), lib_size_norm, group_sample_num,
                         gene_size_ls, tol, times)
   }
   res

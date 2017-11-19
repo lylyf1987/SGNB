@@ -179,7 +179,7 @@ arma::uvec create_read_type_group_g(const std::vector<std::string>& read_type,
     return read_type_group;
   }
 }
-
+//[[Rcpp::export]]
 // calculate initial value----------------------------------------------------------------------------
 Rcpp::List calculate_initial_val(Rcpp::NumericMatrix g_data_matrix,
                                  Rcpp::NumericVector lib_size_norm,
@@ -291,6 +291,7 @@ double sum_mat(Rcpp::NumericMatrix x) {
   return res;
 }
 
+//[[Rcpp::export]]
 // log likelihood function------------------------------------------------------------------------
 double ll(Rcpp::NumericMatrix g_data_matrix,
           Rcpp::NumericVector lib_size_norm,
@@ -331,6 +332,7 @@ double ll(Rcpp::NumericMatrix g_data_matrix,
   return res;
 }
 
+//[[Rcpp::export]]
 // log likelihood function H0-----------------------------------------------------------------------
 double ll_H0(Rcpp::NumericMatrix g_data_matrix,
              Rcpp::NumericVector lib_size_norm,
@@ -361,6 +363,7 @@ double ll_H0(Rcpp::NumericMatrix g_data_matrix,
   return res;
 }
 
+//[[Rcpp::export]]
 // estimate parameter-------------------------------------------------------------------------
 Rcpp::List estimate_par(Rcpp::NumericMatrix g_data_matrix,
                         Rcpp::NumericVector lib_size_norm,
@@ -468,6 +471,7 @@ Rcpp::List estimate_par(Rcpp::NumericMatrix g_data_matrix,
   return res;
 }
 
+//[[Rcpp::export]]
 // estimate parameter H0---------------------------------------------------------------------------------
 Rcpp::List estimate_par_H0(Rcpp::NumericMatrix g_data_matrix,
                            Rcpp::NumericVector lib_size_norm,
