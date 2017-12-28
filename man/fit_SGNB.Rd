@@ -23,7 +23,7 @@ then group all read types into one read type. Default is 0.3.}
 \item{times}{A numerical value to control estimation loop times. Default is 200.}
 }
 \value{
-A data.fram saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression
+A data.frame saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression
         for condition 0 and 1.
 }
 \description{

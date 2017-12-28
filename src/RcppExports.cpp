@@ -6,6 +6,37 @@
 
 using namespace Rcpp;
 
+// gen_pseudo
+Rcpp::List gen_pseudo(Rcpp::NumericVector data, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, double init_delta, double m, double tol, int times);
+RcppExport SEXP SGNB_gen_pseudo(SEXP dataSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP init_deltaSEXP, SEXP mSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lib_size_norm(lib_size_normSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type init_delta(init_deltaSEXP);
+    Rcpp::traits::input_parameter< double >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(gen_pseudo(data, lib_size_norm, group_sample_num, init_delta, m, tol, times));
+    return rcpp_result_gen;
+END_RCPP
+}
+// exact_test
+Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rcpp::IntegerVector group_sample_num, std::string side);
+RcppExport SEXP SGNB_exact_test(SEXP pseudo_dataSEXP, SEXP deltaSEXP, SEXP group_sample_numSEXP, SEXP sideSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type pseudo_data(pseudo_dataSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< std::string >::type side(sideSEXP);
+    rcpp_result_gen = Rcpp::wrap(exact_test(pseudo_data, delta, group_sample_num, side));
+    return rcpp_result_gen;
+END_RCPP
+}
 // create_block_cpp
 Rcpp::List create_block_cpp(const Rcpp::DataFrame ann);
 RcppExport SEXP SGNB_create_block_cpp(SEXP annSEXP) {
@@ -63,12 +94,33 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fit_SGNB_exact_cpp
+Rcpp::List fit_SGNB_exact_cpp(const std::vector<std::string>& read_gene_vec, const std::vector<int>& read_type_vec, Rcpp::NumericMatrix data_matrix, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, double tol, int times, std::string side);
+RcppExport SEXP SGNB_fit_SGNB_exact_cpp(SEXP read_gene_vecSEXP, SEXP read_type_vecSEXP, SEXP data_matrixSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP tolSEXP, SEXP timesSEXP, SEXP sideSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type read_gene_vec(read_gene_vecSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type read_type_vec(read_type_vecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data_matrix(data_matrixSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lib_size_norm(lib_size_normSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< std::string >::type side(sideSEXP);
+    rcpp_result_gen = Rcpp::wrap(fit_SGNB_exact_cpp(read_gene_vec, read_type_vec, data_matrix, lib_size_norm, group_sample_num, tol, times, side));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"SGNB_gen_pseudo", (DL_FUNC) &SGNB_gen_pseudo, 7},
+    {"SGNB_exact_test", (DL_FUNC) &SGNB_exact_test, 4},
     {"SGNB_create_block_cpp", (DL_FUNC) &SGNB_create_block_cpp, 1},
     {"SGNB_create_read_type_cpp", (DL_FUNC) &SGNB_create_read_type_cpp, 4},
     {"SGNB_create_read_type_group_cpp", (DL_FUNC) &SGNB_create_read_type_group_cpp, 4},
     {"SGNB_fit_SGNB_cpp", (DL_FUNC) &SGNB_fit_SGNB_cpp, 8},
+    {"SGNB_fit_SGNB_exact_cpp", (DL_FUNC) &SGNB_fit_SGNB_exact_cpp, 8},
     {NULL, NULL, 0}
 };
 

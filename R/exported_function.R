@@ -398,7 +398,7 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @export
 # fit exact SGNB model-----------------------------------------------------------
-fit_SGNB_exact <- function(read_summarized_df, side = "double", gene_size_ls = NULL, min_reduce = 0, tol = 0.001, times = 200) {
+fit_SGNB_exact <- function(read_summarized_df, side = "double", min_reduce = 0, tol = 0.001, times = 200) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
   # detect sample number under two conditions
