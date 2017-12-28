@@ -77,4 +77,3 @@ TMM <- function(count_df, lib_size)
   res
 }
 
-

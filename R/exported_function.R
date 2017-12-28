@@ -332,7 +332,7 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
 #' fit_SGNB(read_summarized_df)
 #' fit_SGNB(read_summarized_df, gene_size, min_reduce, tol = 0.01, times = 500)
 #'
-#' @return A data.fram saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression
+#' @return A data.frame saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression
 #'         for condition 0 and 1.
 #'
 #' @export
@@ -379,7 +379,69 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 }
 
 
+#' Fit exact SGNB model
+#'
+#'
+#' @param read_summarized_df The returned data.frame from function \code{\link{summarize_read_single_end}} or
+#'                           \code{\link{summarize_read_paired_end}}.
+#' @param side test type, could be "left", "right", or "double", the default is "double"
+#' @param min_reduce A number between 0 and 1 indicating the minimum percentage of the number of parameters
+#'                   needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
+#'                   then group all read types into one read type. Default is 0.
+#' @param tol A numerical value to control estimation accuracy. Default is 0.001.
+#' @param times A numerical value to control estimation loop times. Default is 100.
+#'
+#' @examples
+#' fit_SGNB_exact(read_summarized_df)
+#'
+#' @return A data.frame having gene_id, p-value and relative gene expression for condition 0 and 1.
+#'
+#' @export
+# fit exact SGNB model-----------------------------------------------------------
+fit_SGNB_exact <- function(read_summarized_df, side = "double", gene_size_ls = NULL, min_reduce = 0, tol = 0.001, times = 200) {
+  read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
+  # detect sample number under two conditions
+  sample_num_0 <- sum(stringr::str_detect(names(read_summarized_df), pattern = 'group0_'))
+  sample_num_1 <- sum(stringr::str_detect(names(read_summarized_df), pattern = 'group1_'))
+  group_sample_num <- c(sample_num_0, sample_num_1)
+
+  # calculate TMM normalization factor
+  TMM_dt <- data.table::data.table(read_summarized_df)
+  TMM_dt[, read_type := NULL]
+  TMM_dt <- TMM_dt[, lapply(.SD, sum), by = read_gene]
+  TMM_dt[, read_gene := NULL]
+  lib_size <- colSums(TMM_dt)
+  tmm_norm_factor <- TMM(as.data.frame(TMM_dt), lib_size)
+  lib_size_norm <- lib_size * tmm_norm_factor
+
+  # group read types
+  read_type_group_df <- create_read_type_group_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
+                                                   read_summarized_df$read_type, min_reduce)
+  read_count_dt <- data.table::data.table(read_summarized_df)
+  read_type_group_dt <- data.table::data.table(read_type_group_df)
+  read_count_dt <- merge(read_count_dt, read_type_group_dt, by = c("read_gene", "read_type"))
+  read_count_dt[, read_type := NULL]
+  read_count_dt <- read_count_dt[, lapply(.SD, sum), by = c("read_gene", "read_type_group")]
+  read_count_df <- as.data.frame(read_count_dt)
+
+  # fit model
+  temp <- fit_SGNB_exact_cpp(read_count_df$read_gene, read_count_df$read_type_group, as.matrix(read_count_df[-c(1, 2)]),
+                             lib_size_norm, group_sample_num, tol, times, side)
+  # summarize results
+  temp_result <- temp$results
+  temp_pseudo_data <- temp$`pseudo data`
+  res_pvalue <- aggregate(p_value ~ gene_id, temp_result, function(x) -2 * sum(log(x)))
+  names(res_pvalue)[2] <- "pvalue_combine"
+  res_degree <- aggregate(p_value ~ gene_id, temp_result, function(x) 2 * length(x))
+  names(res_degree)[2] <- "degree"
+  res_theta0 <- aggregate(theta0 ~ gene_id, temp_result, sum)
+  res_theta1 <- aggregate(theta1 ~ gene_id, temp_result, sum)
+  res <- merge(res_pvalue, res_degree, by.all = 'gene_id', all = TRUE)
+  res <- merge(res, res_theta0, by.all = "gene_id", all = TRUE)
+  res <- merge(res, res_theta1, by.all = "gene_id", all = TRUE)
+  res$pvalue <- pchisq(res$pvalue_combine, df = res$degree, lower.tail = FALSE)
+}
 
 
 

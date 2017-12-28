@@ -179,7 +179,7 @@ arma::uvec create_read_type_group_g(const std::vector<std::string>& read_type,
     return read_type_group;
   }
 }
-//[[Rcpp::export]]
+
 // calculate initial value----------------------------------------------------------------------------
 Rcpp::List calculate_initial_val(Rcpp::NumericMatrix g_data_matrix,
                                  Rcpp::NumericVector lib_size_norm,
@@ -291,7 +291,6 @@ double sum_mat(Rcpp::NumericMatrix x) {
   return res;
 }
 
-//[[Rcpp::export]]
 // log likelihood function------------------------------------------------------------------------
 double ll(Rcpp::NumericMatrix g_data_matrix,
           Rcpp::NumericVector lib_size_norm,
@@ -332,7 +331,6 @@ double ll(Rcpp::NumericMatrix g_data_matrix,
   return res;
 }
 
-//[[Rcpp::export]]
 // log likelihood function H0-----------------------------------------------------------------------
 double ll_H0(Rcpp::NumericMatrix g_data_matrix,
              Rcpp::NumericVector lib_size_norm,
@@ -363,7 +361,6 @@ double ll_H0(Rcpp::NumericMatrix g_data_matrix,
   return res;
 }
 
-//[[Rcpp::export]]
 // estimate parameter-------------------------------------------------------------------------
 Rcpp::List estimate_par(Rcpp::NumericMatrix g_data_matrix,
                         Rcpp::NumericVector lib_size_norm,
@@ -471,7 +468,6 @@ Rcpp::List estimate_par(Rcpp::NumericMatrix g_data_matrix,
   return res;
 }
 
-//[[Rcpp::export]]
 // estimate parameter H0---------------------------------------------------------------------------------
 Rcpp::List estimate_par_H0(Rcpp::NumericMatrix g_data_matrix,
                            Rcpp::NumericVector lib_size_norm,
@@ -560,6 +556,322 @@ Rcpp::List estimate_par_H0(Rcpp::NumericMatrix g_data_matrix,
                                       Rcpp::_["phi"] = phi_new);
   return res;
 }
+
+// Conditional log likelihood estimation------------------------------------------------------------------------
+// conditional log likelihood function of r = (1/phi) for single group
+double cll(Rcpp::NumericVector data,
+           double r) {
+  double res;
+  int n = data.size();
+  Rcpp::NumericVector r_vec(1, r);
+  res = Rcpp::sum(Rcpp::lgamma(data + r)) + Rcpp::lgamma(n * r_vec)[0] - Rcpp::lgamma(Rcpp::sum(data) + n * r_vec)[0] -
+    n * Rcpp::lgamma(r_vec)[0];
+  return res;
+}
+// conditional log likelihood function of delta = (1/(1+r)) for single group
+double cll_delta(Rcpp::NumericVector data,
+                 double delta) {
+  double res;
+  double r = (1 / delta) - 1;
+  res = cll(data, r);
+  return res;
+}
+// derivertive of conditional log likelihood function of r for single group
+double cll_d(Rcpp::NumericVector data,
+             double r) {
+  double res;
+  int n = data.size();
+  Rcpp::NumericVector r_vec(1, r);
+  res = Rcpp::sum(Rcpp::digamma(data + r)) + Rcpp::digamma(n * r_vec)[0] * n -
+    Rcpp::digamma(Rcpp::sum(data) + n * r_vec)[0] * n - n * Rcpp::digamma(r_vec)[0];
+  return res;
+}
+// derivertive of conditional log likelihood function of delta = (1/(1+r)) for single group
+double cll_d_delta(Rcpp::NumericVector data,
+                   double delta) {
+  double res;
+  double r = (1 / delta) - 1;
+  res = cll_d(data, r) * (-pow(delta, -2));
+  return res;
+}
+// second order derivertive of conditional log likelihood function of r for single group
+double cll_dd(Rcpp::NumericVector data,
+              double r) {
+  double res;
+  int n = data.size();
+  Rcpp::NumericVector r_vec(1, r);
+  res = Rcpp::sum(Rcpp::trigamma(data + r)) + Rcpp::trigamma(n * r_vec)[0] * pow(n, 2) -
+    Rcpp::trigamma(Rcpp::sum(data) + n * r_vec)[0] * pow(n, 2) - n * Rcpp::trigamma(r_vec)[0];
+  return res;
+}
+// second order derivertive of conditional log likelihood function of delta = (1/(1+r)) for single group
+double cll_dd_delta(Rcpp::NumericVector data,
+                    double delta) {
+  double res;
+  double r = (1 / delta) - 1;
+  res = cll_dd(data, r) * pow(delta, -4) + cll_d(data, r) * 2 * pow(delta, -3);
+  return res;
+}
+// log likelihood function of theta for single group
+double logLik(Rcpp::NumericVector data,
+              Rcpp::NumericVector lib_size_norm,
+              double theta,
+              double delta) {
+  int n = data.size();
+  double res;
+  double r = (1 / delta) - 1;
+  res = Rcpp::sum(Rcpp::lgamma(data + r)) - Rcpp::sum(Rcpp::lgamma(data + 1)) - n * std::lgamma(r) +
+    n * r * std::log(r) - r * Rcpp::sum(Rcpp::log(lib_size_norm * theta + r)) +
+    Rcpp::sum(data * Rcpp::log((lib_size_norm * theta) / (lib_size_norm * theta + r)));
+  return res;
+}
+// first derivertive of log likelihood function of theta for single group
+double logLik_d(Rcpp::NumericVector data,
+                Rcpp::NumericVector lib_size_norm,
+                double theta,
+                double delta) {
+  int n = data.size();
+  double res;
+  double r = (1 / delta) - 1;
+  res = Rcpp::sum((data / theta) - ((data * lib_size_norm) / (lib_size_norm * theta + r)) -
+    ((r * lib_size_norm) / (lib_size_norm * theta + r)));
+  return res;
+}
+// second derivertive of log likelihood function of theta for single group
+double logLik_dd(Rcpp::NumericVector data,
+                 Rcpp::NumericVector lib_size_norm,
+                 double theta,
+                 double delta) {
+  int n = data.size();
+  double res;
+  double r = (1 / delta) - 1;
+  res = Rcpp::sum(-(data / std::pow(theta, 2)) +
+    ((data * Rcpp::pow(lib_size_norm, 2)) / Rcpp::pow(lib_size_norm * theta + r, 2)) +
+    ((r * Rcpp::pow(lib_size_norm, 2)) / Rcpp::pow(lib_size_norm * theta + r, 2)));
+  return res;
+}
+// fit theta EM
+Rcpp::NumericVector estimate_theta_em_exact(Rcpp::NumericVector data,
+                                            Rcpp::NumericVector lib_size_norm,
+                                            Rcpp::IntegerVector group_sample_num,
+                                            double init_theta0,
+                                            double init_theta1,
+                                            double delta,
+                                            double tol,
+                                            int times) {
+
+  int group0_sample_num = group_sample_num[0];
+  int group1_sample_num = group_sample_num[1];
+  double r = (1 / delta) - 1;
+  double theta0_old, theta1_old, theta0_new, theta1_new, ll_all_old, ll_all_new, err;
+  theta0_old = init_theta0;
+  theta1_old = init_theta1;
+  Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
+  Rcpp::NumericVector data1(std::next(data.begin(), group0_sample_num), data.end());
+  Rcpp::NumericVector lib_size_norm0(lib_size_norm.begin(), std::next(lib_size_norm.begin(), group0_sample_num));
+  Rcpp::NumericVector lib_size_norm1(std::next(lib_size_norm.begin(), group0_sample_num), lib_size_norm.end());
+  for (int run = 1; run <= times; ++run) {
+    theta0_new = Rcpp::sum((data0 + r) * (theta0_old / (lib_size_norm0 * theta0_old + r))) / group0_sample_num;
+    theta1_new = Rcpp::sum((data1 + r) * (theta1_old / (lib_size_norm1 * theta1_old + r))) / group1_sample_num;
+    //ll_all_old = logLik(data0, lib_size_norm0, theta0_old, r) + logLik(data1, lib_size_norm1, theta1_old, r);
+    //ll_all_new = logLik(data0, lib_size_norm0, theta0_new, r) + logLik(data1, lib_size_norm1, theta1_new, r);
+    //err = std::abs((ll_all_new - ll_all_old) / ll_all_old);
+    err = std::sqrt(std::pow(theta0_new - theta0_old, 2) + std::pow(theta1_new - theta1_old, 2)) /
+      std::sqrt(std::pow(theta0_old, 2) + std::pow(theta1_old, 2));
+    if (err < tol) {
+      break;
+    } else {
+      theta0_old = theta0_new;
+      theta1_old = theta1_new;
+    }
+  }
+  Rcpp::NumericVector res = Rcpp::NumericVector::create(Rcpp::_["theta0"] = theta0_new,
+                                                        Rcpp::_["theta1"] = theta1_new);
+  return res;
+}
+// fit theta Newton
+Rcpp::NumericVector estimate_theta_newton_exact(Rcpp::NumericVector data,
+                                                Rcpp::NumericVector lib_size_norm,
+                                                Rcpp::IntegerVector group_sample_num,
+                                                double init_theta0,
+                                                double init_theta1,
+                                                double delta,
+                                                double tol,
+                                                int times) {
+  int group0_sample_num = group_sample_num[0];
+  int group1_sample_num = group_sample_num[1];
+  double theta0_old, theta1_old, theta0_new, theta1_new;
+  double ll_d_0, ll_dd_0, ll_d_1, ll_dd_1, err;
+  theta0_old = init_theta0;
+  theta1_old = init_theta1;
+  Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
+  Rcpp::NumericVector data1(std::next(data.begin(), group0_sample_num), data.end());
+  Rcpp::NumericVector lib_size_norm0(lib_size_norm.begin(), std::next(lib_size_norm.begin(), group0_sample_num));
+  Rcpp::NumericVector lib_size_norm1(std::next(lib_size_norm.begin(), group0_sample_num), lib_size_norm.end());
+  for (int i = 0; i < times; i++) {
+    try {
+      ll_d_0 = logLik_d(data0, lib_size_norm0, theta0_old, delta);
+      ll_dd_0 = logLik_dd(data0, lib_size_norm0, theta0_old, delta);
+      ll_d_1 = logLik_d(data1, lib_size_norm1, theta1_old, delta);
+      ll_dd_1 = logLik_dd(data1, lib_size_norm1, theta1_old, delta);
+      theta0_new = theta0_old - (ll_d_0 / ll_dd_0);
+      theta1_new = theta1_old - (ll_d_1 / ll_dd_1);
+      err = std::sqrt(std::pow(theta0_new - theta0_old, 2) + std::pow(theta1_new - theta1_old, 2)) /
+        std::sqrt(std::pow(theta0_old, 2) + std::pow(theta1_old, 2));
+      if (err < tol) {
+        break;
+      } else {
+        theta0_old = theta0_new;
+        theta1_old = theta1_new;
+      }
+    }
+    catch(...) {
+      theta0_new = 0;
+      theta1_new = 0;
+    }
+
+  }
+  Rcpp::NumericVector res = Rcpp::NumericVector::create(Rcpp::_["theta0"] = theta0_new,
+                                                        Rcpp::_["theta1"] = theta1_new);
+  return res;
+
+}
+// fit delta = (1 / (1 + r)), r = (1 / phi)
+double estimate_delta_exact(Rcpp::NumericVector data,
+                            Rcpp::IntegerVector group_sample_num,
+                            double init_delta,
+                            double tol,
+                            int times) {
+  double err;
+  double delta_old = init_delta;
+  double delta_new;
+  double cll_d_delta_all, cll_dd_delta_all, cll_delta_all_old, cll_delta_all_new;
+  int group0_sample_num = group_sample_num[0];
+  Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
+  Rcpp::NumericVector data1(std::next(data.begin(), group0_sample_num), data.end());
+  for (int i = 0; i < times; i++) {
+    cll_d_delta_all = cll_d_delta(data0, delta_old) + cll_d_delta(data1, delta_old);
+    cll_dd_delta_all = cll_dd_delta(data0, delta_old) + cll_dd_delta(data1, delta_old);
+    delta_new = delta_old - (cll_d_delta_all / cll_dd_delta_all);
+    if (delta_new <= 0) {
+      delta_new = 0.0001;
+    } else if (delta_new >= 1) {
+      delta_new = 0.9999999;
+    }
+    //cll_delta_all_old = cll_delta(data0, delta_old) + cll_delta(data1, delta_old);
+    //cll_delta_all_new = cll_delta(data0, delta_new) + cll_delta(data1, delta_new);
+    //err = std::abs((cll_delta_all_new - cll_delta_all_old) / cll_delta_all_old);
+    err = std::abs((delta_new - delta_old) / delta_old);
+    if (err < tol) {
+      break;
+    } else {
+      delta_old = delta_new;
+    }
+  }
+  return delta_new;
+}
+// generate pseudo data
+// [[Rcpp::export]]
+Rcpp::List gen_pseudo(Rcpp::NumericVector data,
+                      Rcpp::NumericVector lib_size_norm,
+                      Rcpp::IntegerVector group_sample_num,
+                      double init_delta,
+                      double m,
+                      double tol,
+                      int times) {
+  Rcpp::NumericVector pseudo_data(data.size());
+  double delta_old, delta_new, init_theta0, init_theta1, percent, err;
+  Rcpp::NumericVector theta_vec(2), init_theta_vec(data.size());
+  Rcpp::NumericVector percent_vec(data.size());
+  int group0_sample_num = group_sample_num[0];
+  // initialize delta(phi) and theta
+  delta_old = estimate_delta_exact(data, group_sample_num, init_delta, tol, times);
+  init_theta_vec = data / lib_size_norm;
+  Rcpp::NumericVector init_theta0_vec(init_theta_vec.begin(), std::next(init_theta_vec.begin(), group0_sample_num));
+  Rcpp::NumericVector init_theta1_vec(std::next(init_theta_vec.begin(), group0_sample_num), init_theta_vec.end());
+  init_theta0 = Rcpp::mean(init_theta0_vec);
+  init_theta1 = Rcpp::mean(init_theta1_vec);
+  for (int i = 0; i < times; i++) {
+    // given delta(phi), estimate theta
+    theta_vec = estimate_theta_newton_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, tol, times);
+    // calculate percentiles
+    for (int j = 0; j < group0_sample_num; j++) {
+      percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 1, 0) -
+        (1/2) * R::dnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 0);
+      percent_vec[j] = percent;
+    }
+    for (int j = group0_sample_num; j < data.size(); j++) {
+      percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[1], 1, 0) -
+        (1/2) * R::dnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[1], 0);
+      percent_vec[j] = percent;
+    }
+    // calculate pseudodata from m*theta and delta(phi) by linear interpolation
+    for (int j = 0; j < group0_sample_num; j++) {
+      pseudo_data[j] = R::qnbinom_mu(percent_vec[j], (1/delta_old) - 1, m * theta_vec[0], 1, 0);
+    }
+    for (int j = group0_sample_num; j < data.size(); j++) {
+      pseudo_data[j] = R::qnbinom_mu(percent_vec[j], (1/delta_old) - 1, m * theta_vec[1], 1, 0);
+    }
+    // update delta(phi) using pseudodata
+    delta_new = estimate_delta_exact(pseudo_data, group_sample_num, init_delta, tol, times);
+    err = std::abs((delta_new - delta_old) / delta_old);
+    if (err < tol) {
+      break;
+    } else {
+      delta_old = delta_new;
+    }
+  }
+  Rcpp::List res = Rcpp::List::create(Rcpp::_["pseudo_data"] = pseudo_data,
+                                      Rcpp::_["delta"] = delta_new,
+                                      Rcpp::_["theta"] = theta_vec);
+  return res;
+}
+// conditional likelihood Z0|Z0+Z1 for exact test, r = (1/phi)
+double cl(double z0, double z, double delta, Rcpp::IntegerVector group_sample_num) {
+  int n0 = group_sample_num[0];
+  int n1 = group_sample_num[1];
+  double r = (1 / delta) - 1;
+  double res = std::lgamma(z0 + r*n0) + std::lgamma(z - z0 + r*n1) + std::lgamma(r*(n0 + n1)) + std::lgamma(z + 1) -
+    (std::lgamma(r*n0) + std::lgamma(r*n1) + std::lgamma(z0 + 1) + std::lgamma(z - z0 + 1) + std::lgamma(z + r*(n0 + n1)));
+  return std::exp(res);
+}
+// calculate p value for exact test, r = (1/phi)
+// [[Rcpp::export]]
+Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rcpp::IntegerVector group_sample_num, std::string side) {
+  Rcpp::NumericVector p_value;
+  if (Rcpp::is_true(Rcpp::any(Rcpp::is_na(pseudo_data)))) {
+    p_value.push_back(NA_REAL);
+  } else {
+    double left_tail = 0;
+    double right_tail;
+    double z0, z1, z;
+    Rcpp::NumericVector data0(pseudo_data.begin(), std::next(pseudo_data.begin(), group_sample_num[0]));
+    Rcpp::NumericVector data1(std::next(pseudo_data.begin(), group_sample_num[0]), pseudo_data.end());
+    z0 = Rcpp::sum(data0);
+    z1 = Rcpp::sum(data1);
+    z = z0 + z1;
+    if (z0 <= z1) {
+      for (long i = 0; i <= (long)z0; i++) {
+        left_tail = left_tail + cl(i, z, delta, group_sample_num);
+      }
+      right_tail = 1 - left_tail;
+    } else {
+      for (long i = (long)z0 + 1; i <= (long)z; i++) {
+        right_tail = right_tail + cl(i, z, delta, group_sample_num);
+      }
+      left_tail = 1 - right_tail;
+    }
+    if (side == "left") {
+      p_value.push_back(left_tail);
+    } else if (side == "right") {
+      p_value.push_back(right_tail);
+    } else {
+      p_value.push_back(2*std::min(left_tail, right_tail));
+    }
+  }
+  return p_value;
+}
+
 /*_____________________________________________________________________________________________________________________
 _____________________________________________________________________________________________________________________*/
 
@@ -986,10 +1298,11 @@ Rcpp::DataFrame fit_SGNB_cpp (const std::vector<std::string>& read_gene_unique_v
       Rcpp::List init_val_ls = calculate_initial_val(g_data_matrix, lib_size_norm, group_sample_num);
       Rcpp::NumericVector init_val_theta_0 = init_val_ls["init_val_theta_0"];
       Rcpp::NumericVector init_val_theta_1 = init_val_ls["init_val_theta_1"];
-      Rcpp::NumericVector init_val_phi = init_val_ls["init_val_phi"];
+      //Rcpp::NumericVector init_val_phi = init_val_ls["init_val_phi"];
       Rcpp::NumericVector init_val_theta_H0 = init_val_ls["init_val_theta_H0"];
-      Rcpp::NumericVector init_val_phi_H0 = init_val_ls["init_val_phi_H0"];
-
+      //Rcpp::NumericVector init_val_phi_H0 = init_val_ls["init_val_phi_H0"];
+      Rcpp::NumericVector init_val_phi(init_val_theta_0.size(), 100);
+      Rcpp::NumericVector init_val_phi_H0(init_val_theta_0.size(), 100);
       // estimate parameter
       Rcpp::List fitted_val_ls = estimate_par(g_data_matrix, lib_size_norm, group_sample_num, init_val_theta_0,
                                               init_val_theta_1, init_val_phi, tol, times);
@@ -1016,7 +1329,7 @@ Rcpp::DataFrame fit_SGNB_cpp (const std::vector<std::string>& read_gene_unique_v
       df_vec.push_back(df);
     }
     catch (...) {
-      Rcpp::Rcout << "error gene : " << *read_gene_unique_vec_it << '\n';
+      Rcpp::Rcout << "unkown gene : " << *read_gene_unique_vec_it << '\n';
       p_value_vec.push_back(NA_REAL);
       gene_expr_0.push_back(NA_REAL);
       gene_expr_1.push_back(NA_REAL);
@@ -1034,3 +1347,73 @@ Rcpp::DataFrame fit_SGNB_cpp (const std::vector<std::string>& read_gene_unique_v
                                                 Rcpp::_["stringsAsFactors"] = false);
   return res;
 }
+
+
+// fit exact SGNB model and calculate test result----------------------------------------------------------
+//[[Rcpp::export]]
+Rcpp::List fit_SGNB_exact_cpp (const std::vector<std::string>& read_gene_vec,
+                               const std::vector<int>& read_type_vec,
+                               Rcpp::NumericMatrix data_matrix,
+                               Rcpp::NumericVector lib_size_norm,
+                               Rcpp::IntegerVector group_sample_num,
+                               double tol,
+                               int times,
+                               std::string side) {
+  double m = 1;
+  int n = lib_size_norm.size();
+  int group0_sample_num = group_sample_num[0];
+  for (int i = 0; i < lib_size_norm.size(); i++) {
+    m = m * std::pow(lib_size_norm[i], (1.0 / n));
+  }
+  // containers for saving result
+  Rcpp::NumericVector p_value_vec, phi_vec, theta0_vec, theta1_vec;
+  Rcpp::NumericMatrix pseudo_data(data_matrix.nrow(), data_matrix.ncol());
+  std::vector<std::string> gene_vec;
+  std::vector<int> type_vec;
+  std::fill(pseudo_data.begin(), pseudo_data.end(), NA_REAL);
+  // fit SGNB for each read type
+  std::vector<std::string>::const_iterator read_gene_vec_it;
+  unsigned int rt_idx;
+  for (read_gene_vec_it = read_gene_vec.begin(); read_gene_vec_it != read_gene_vec.end(); ++read_gene_vec_it) {
+    Rcpp::Rcout << *read_gene_vec_it << std::endl;
+    try {
+      rt_idx = std::distance(read_gene_vec.begin(), read_gene_vec_it);
+      // get gene count data
+      Rcpp::NumericVector data = data_matrix(rt_idx, Rcpp::_);
+      // generate pseudo data
+      Rcpp::List res = gen_pseudo(data, lib_size_norm, group_sample_num, 0.5, m, tol, times);
+      Rcpp::NumericVector pseudo_data_row = res["pseudo_data"];
+      double delta = res["delta"];
+      Rcpp::NumericVector theta_vec = res["theta"];
+      // exact test
+      Rcpp::NumericVector p_value = exact_test(pseudo_data_row, delta, group_sample_num, side);
+      // save result
+      p_value_vec.push_back(p_value[0]);
+      phi_vec.push_back(delta / (1 - delta));
+      theta0_vec.push_back(theta_vec[0]);
+      theta1_vec.push_back(theta_vec[1]);
+      gene_vec.push_back(*read_gene_vec_it);
+      type_vec.push_back(*std::next(read_type_vec.begin(), rt_idx));
+      pseudo_data(rt_idx, Rcpp::_) = pseudo_data_row;
+    }
+    catch (...) {
+      Rcpp::Rcout << "error gene : " << *read_gene_vec_it << '\n';
+      p_value_vec.push_back(NA_REAL);
+      phi_vec.push_back(NA_REAL);
+      theta0_vec.push_back(NA_REAL);
+      theta1_vec.push_back(NA_REAL);
+      gene_vec.push_back(*read_gene_vec_it);
+      type_vec.push_back(*std::next(read_type_vec.begin(), rt_idx));
+    }
+  }
+  Rcpp::List res = Rcpp::List::create(Rcpp::_["results"] = Rcpp::DataFrame::create(Rcpp::_["gene_id"] = read_gene_vec,
+                                                                                   Rcpp::_["read_type"] = type_vec,
+                                                                                   Rcpp::_["p_value"] = p_value_vec,
+                                                                                   Rcpp::_["phi"] = phi_vec,
+                                                                                   Rcpp::_["theta0"] = theta0_vec,
+                                                                                   Rcpp::_["theta1"] = theta1_vec,
+                                                                                   Rcpp::_["stringsAsFactors"] = false),
+                                      Rcpp::_["pseudo data"] = pseudo_data);
+  return res;
+}
+
