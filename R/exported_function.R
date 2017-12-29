@@ -440,7 +440,7 @@ fit_SGNB_exact <- function(read_summarized_df, side = "double", min_reduce = 0, 
   res <- merge(res_pvalue, res_degree, by.all = 'gene_id', all = TRUE)
   res <- merge(res, res_theta0, by.all = "gene_id", all = TRUE)
   res <- merge(res, res_theta1, by.all = "gene_id", all = TRUE)
-  res$pvalue <- pchisq(res$pvalue_combine, df = res$degree, lower.tail = FALSE)
+  res$p_value <- pchisq(res$pvalue_combine, df = res$degree, lower.tail = FALSE)
   res
 }
 
