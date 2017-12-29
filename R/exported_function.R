@@ -326,7 +326,7 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
 #'                   needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
 #'                   then group all read types into one read type. Default is 0.3.
 #' @param tol A numerical value to control estimation accuracy. Default is 0.001.
-#' @param times A numerical value to control estimation loop times. Default is 200.
+#' @param times A numerical value to control estimation loop times. Default is 100.
 #'
 #' @examples
 #' fit_SGNB(read_summarized_df)
@@ -337,7 +337,7 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
 #'
 #' @export
 # fit SGNB model-----------------------------------------------------------
-fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, tol = 0.001, times = 200) {
+fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, tol = 0.001, times = 100) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
   # detect sample number under two conditions
@@ -398,7 +398,7 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @export
 # fit exact SGNB model-----------------------------------------------------------
-fit_SGNB_exact <- function(read_summarized_df, side = "double", min_reduce = 0, tol = 0.001, times = 200) {
+fit_SGNB_exact <- function(read_summarized_df, side = "double", min_reduce = 0, tol = 0.001, times = 100) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
   # detect sample number under two conditions

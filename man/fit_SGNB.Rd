@@ -5,7 +5,7 @@
 \title{Fit SGNB model}
 \usage{
 fit_SGNB(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3,
-  tol = 0.001, times = 200)
+  tol = 0.001, times = 100)
 }
 \arguments{
 \item{read_summarized_df}{The returned data.frame from function \code{\link{summarize_read_single_end}} or
@@ -20,7 +20,7 @@ then group all read types into one read type. Default is 0.3.}
 
 \item{tol}{A numerical value to control estimation accuracy. Default is 0.001.}
 
-\item{times}{A numerical value to control estimation loop times. Default is 200.}
+\item{times}{A numerical value to control estimation loop times. Default is 100.}
 }
 \value{
 A data.frame saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression

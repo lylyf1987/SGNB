@@ -5,7 +5,7 @@
 \title{Fit exact SGNB model}
 \usage{
 fit_SGNB_exact(read_summarized_df, side = "double", min_reduce = 0,
-  tol = 0.001, times = 200)
+  tol = 0.001, times = 100)
 }
 \arguments{
 \item{read_summarized_df}{The returned data.frame from function \code{\link{summarize_read_single_end}} or
