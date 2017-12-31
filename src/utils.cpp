@@ -1375,7 +1375,6 @@ Rcpp::List fit_SGNB_exact_cpp (const std::vector<std::string>& read_gene_vec,
   std::vector<std::string>::const_iterator read_gene_vec_it;
   unsigned int rt_idx;
   for (read_gene_vec_it = read_gene_vec.begin(); read_gene_vec_it != read_gene_vec.end(); ++read_gene_vec_it) {
-    Rcpp::Rcout << *read_gene_vec_it << std::endl;
     try {
       rt_idx = std::distance(read_gene_vec.begin(), read_gene_vec_it);
       // get gene count data
