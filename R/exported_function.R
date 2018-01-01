@@ -384,7 +384,6 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @param read_summarized_df The returned data.frame from function \code{\link{summarize_read_single_end}} or
 #'                           \code{\link{summarize_read_paired_end}}.
-#' @param side test type, could be "left", "right", or "double", the default is "double"
 #' @param min_reduce A number between 0 and 1 indicating the minimum percentage of the number of parameters
 #'                   needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
 #'                   then group all read types into one read type. Default is 0.
@@ -398,7 +397,7 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @export
 # fit exact SGNB model-----------------------------------------------------------
-fit_SGNB_exact <- function(read_summarized_df, side = "double", min_reduce = 0, tol = 0.001, times = 100) {
+fit_SGNB_exact <- function(read_summarized_df, min_reduce = 0, tol = 0.0001, times = 100) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
 
   # detect sample number under two conditions
@@ -427,7 +426,7 @@ fit_SGNB_exact <- function(read_summarized_df, side = "double", min_reduce = 0, 
 
   # fit model
   temp <- fit_SGNB_exact_cpp(read_count_df$read_gene, read_count_df$read_type_group, as.matrix(read_count_df[-c(1, 2)]),
-                             lib_size_norm, group_sample_num, tol, times, side)
+                             lib_size_norm, group_sample_num, tol, times)
   # summarize results
   temp_result <- temp$results
   temp_pseudo_data <- temp$`pseudo data`

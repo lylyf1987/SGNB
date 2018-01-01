@@ -663,7 +663,7 @@ Rcpp::NumericVector estimate_theta_em_exact(Rcpp::NumericVector data,
   int group0_sample_num = group_sample_num[0];
   int group1_sample_num = group_sample_num[1];
   double r = (1 / delta) - 1;
-  double theta0_old, theta1_old, theta0_new, theta1_new, ll_all_old, ll_all_new, err;
+  double theta0_old, theta1_old, theta0_new, theta1_new, ll_all_old, ll_all_new, ll_d_all_old, ll_d_all_new, err;
   theta0_old = init_theta0;
   theta1_old = init_theta1;
   Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
@@ -673,8 +673,8 @@ Rcpp::NumericVector estimate_theta_em_exact(Rcpp::NumericVector data,
   for (int run = 1; run <= times; ++run) {
     theta0_new = Rcpp::sum((data0 + r) * (theta0_old / (lib_size_norm0 * theta0_old + r))) / group0_sample_num;
     theta1_new = Rcpp::sum((data1 + r) * (theta1_old / (lib_size_norm1 * theta1_old + r))) / group1_sample_num;
-    //ll_all_old = logLik(data0, lib_size_norm0, theta0_old, r) + logLik(data1, lib_size_norm1, theta1_old, r);
-    //ll_all_new = logLik(data0, lib_size_norm0, theta0_new, r) + logLik(data1, lib_size_norm1, theta1_new, r);
+    //ll_all_old = logLik(data0, lib_size_norm0, theta0_old, delta) + logLik(data1, lib_size_norm1, theta1_old, delta);
+    //ll_all_new = logLik(data0, lib_size_norm0, theta0_new, delta) + logLik(data1, lib_size_norm1, theta1_new, delta);
     //err = std::abs((ll_all_new - ll_all_old) / ll_all_old);
     err = std::sqrt(std::pow(theta0_new - theta0_old, 2) + std::pow(theta1_new - theta1_old, 2)) /
       std::sqrt(std::pow(theta0_old, 2) + std::pow(theta1_old, 2));
@@ -701,7 +701,7 @@ Rcpp::NumericVector estimate_theta_newton_exact(Rcpp::NumericVector data,
   int group0_sample_num = group_sample_num[0];
   int group1_sample_num = group_sample_num[1];
   double theta0_old, theta1_old, theta0_new, theta1_new;
-  double ll_d_0, ll_dd_0, ll_d_1, ll_dd_1, err;
+  double ll_d_0, ll_dd_0, ll_d_1, ll_dd_1, err, ll_d_all_old, ll_d_all_new;
   theta0_old = init_theta0;
   theta1_old = init_theta1;
   Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
@@ -729,7 +729,6 @@ Rcpp::NumericVector estimate_theta_newton_exact(Rcpp::NumericVector data,
       theta0_new = 0;
       theta1_new = 0;
     }
-
   }
   Rcpp::NumericVector res = Rcpp::NumericVector::create(Rcpp::_["theta0"] = theta0_new,
                                                         Rcpp::_["theta1"] = theta1_new);
@@ -745,7 +744,7 @@ double estimate_delta_exact(Rcpp::NumericVector data,
   double err;
   double delta_old = init_delta;
   double delta_new;
-  double cll_d_delta_all, cll_dd_delta_all, cll_delta_all_old, cll_delta_all_new;
+  double cll_d_delta_all, cll_dd_delta_all, cll_d_delta_all_old, cll_d_delta_all_new;
   int group0_sample_num = group_sample_num[0];
   Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
   Rcpp::NumericVector data1(std::next(data.begin(), group0_sample_num), data.end());
@@ -756,11 +755,11 @@ double estimate_delta_exact(Rcpp::NumericVector data,
     if (delta_new <= 0) {
       delta_new = 0.0001;
     } else if (delta_new >= 1) {
-      delta_new = 0.9999999;
+      delta_new = 0.9999;
     }
-    //cll_delta_all_old = cll_delta(data0, delta_old) + cll_delta(data1, delta_old);
-    //cll_delta_all_new = cll_delta(data0, delta_new) + cll_delta(data1, delta_new);
-    //err = std::abs((cll_delta_all_new - cll_delta_all_old) / cll_delta_all_old);
+    //cll_d_delta_all_old = cll_d_delta(data0, delta_old) + cll_d_delta(data1, delta_old);
+    //cll_d_delta_all_new = cll_d_delta(data0, delta_new) + cll_d_delta(data1, delta_new);
+    //err = std::abs((cll_d_delta_all_new - cll_d_delta_all_old) / cll_d_delta_all_old);
     err = std::abs((delta_new - delta_old) / delta_old);
     if (err < tol) {
       break;
@@ -771,7 +770,6 @@ double estimate_delta_exact(Rcpp::NumericVector data,
   return delta_new;
 }
 // generate pseudo data
-// [[Rcpp::export]]
 Rcpp::List gen_pseudo(Rcpp::NumericVector data,
                       Rcpp::NumericVector lib_size_norm,
                       Rcpp::IntegerVector group_sample_num,
@@ -793,7 +791,7 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
   init_theta1 = Rcpp::mean(init_theta1_vec);
   for (int i = 0; i < times; i++) {
     // given delta(phi), estimate theta
-    theta_vec = estimate_theta_newton_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, tol, times);
+    theta_vec = estimate_theta_em_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, tol, times);
     // calculate percentiles
     for (int j = 0; j < group0_sample_num; j++) {
       percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 1, 0) -
@@ -836,38 +834,31 @@ double cl(double z0, double z, double delta, Rcpp::IntegerVector group_sample_nu
   return std::exp(res);
 }
 // calculate p value for exact test, r = (1/phi)
-// [[Rcpp::export]]
-Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rcpp::IntegerVector group_sample_num, std::string side) {
+Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rcpp::IntegerVector group_sample_num) {
   Rcpp::NumericVector p_value;
   if (Rcpp::is_true(Rcpp::any(Rcpp::is_na(pseudo_data)))) {
     p_value.push_back(NA_REAL);
   } else {
-    double left_tail = 0;
-    double right_tail;
+    double p_temp = 0;
     double z0, z1, z;
+    int n0, n1;
     Rcpp::NumericVector data0(pseudo_data.begin(), std::next(pseudo_data.begin(), group_sample_num[0]));
     Rcpp::NumericVector data1(std::next(pseudo_data.begin(), group_sample_num[0]), pseudo_data.end());
     z0 = Rcpp::sum(data0);
     z1 = Rcpp::sum(data1);
     z = z0 + z1;
-    if (z0 <= z1) {
+    n0 = group_sample_num[0];
+    n1 = group_sample_num[1];
+    if (z0 <= ((n0 * z) / (n0 + n1))) {
       for (long i = 0; i <= (long)z0; i++) {
-        left_tail = left_tail + cl(i, z, delta, group_sample_num);
+        p_temp = p_temp + cl(i, z, delta, group_sample_num);
       }
-      right_tail = 1 - left_tail;
     } else {
-      for (long i = (long)z0 + 1; i <= (long)z; i++) {
-        right_tail = right_tail + cl(i, z, delta, group_sample_num);
+      for (long i = (long)z0; i <= (long)z; i++) {
+        p_temp = p_temp + cl(i, z, delta, group_sample_num);
       }
-      left_tail = 1 - right_tail;
     }
-    if (side == "left") {
-      p_value.push_back(left_tail);
-    } else if (side == "right") {
-      p_value.push_back(right_tail);
-    } else {
-      p_value.push_back(2*std::min(left_tail, right_tail));
-    }
+    p_value.push_back(std::min(2 * p_temp, 1.0));
   }
   return p_value;
 }
@@ -1357,8 +1348,7 @@ Rcpp::List fit_SGNB_exact_cpp (const std::vector<std::string>& read_gene_vec,
                                Rcpp::NumericVector lib_size_norm,
                                Rcpp::IntegerVector group_sample_num,
                                double tol,
-                               int times,
-                               std::string side) {
+                               int times) {
   double m = 1;
   int n = lib_size_norm.size();
   int group0_sample_num = group_sample_num[0];
@@ -1385,7 +1375,7 @@ Rcpp::List fit_SGNB_exact_cpp (const std::vector<std::string>& read_gene_vec,
       double delta = res["delta"];
       Rcpp::NumericVector theta_vec = res["theta"];
       // exact test
-      Rcpp::NumericVector p_value = exact_test(pseudo_data_row, delta, group_sample_num, side);
+      Rcpp::NumericVector p_value = exact_test(pseudo_data_row, delta, group_sample_num);
       // save result
       p_value_vec.push_back(p_value[0]);
       phi_vec.push_back(delta / (1 - delta));

@@ -4,14 +4,12 @@
 \alias{fit_SGNB_exact}
 \title{Fit exact SGNB model}
 \usage{
-fit_SGNB_exact(read_summarized_df, side = "double", min_reduce = 0,
-  tol = 0.001, times = 100)
+fit_SGNB_exact(read_summarized_df, min_reduce = 0, tol = 1e-04,
+  times = 100)
 }
 \arguments{
 \item{read_summarized_df}{The returned data.frame from function \code{\link{summarize_read_single_end}} or
 \code{\link{summarize_read_paired_end}}.}
-
-\item{side}{test type, could be "left", "right", or "double", the default is "double"}
 
 \item{min_reduce}{A number between 0 and 1 indicating the minimum percentage of the number of parameters
 needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
