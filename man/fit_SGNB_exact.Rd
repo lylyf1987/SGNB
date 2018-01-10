@@ -4,12 +4,16 @@
 \alias{fit_SGNB_exact}
 \title{Fit exact SGNB model}
 \usage{
-fit_SGNB_exact(read_summarized_df, min_reduce = 0, tol = 1e-04,
-  times = 100)
+fit_SGNB_exact(read_summarized_df, simplify = TRUE, combine = "Fisher",
+  min_reduce = 0, gene_size_ls = NULL, tol = 1e-04, times = 100)
 }
 \arguments{
 \item{read_summarized_df}{The returned data.frame from function \code{\link{summarize_read_single_end}} or
 \code{\link{summarize_read_paired_end}}.}
+
+\item{simplify}{Whether apply model simplification. Default is TRUE.}
+
+\item{combine}{Method for calculating global p-value. Could be "Fisher" or "Bonferroni". Default is "Fisher".}
 
 \item{min_reduce}{A number between 0 and 1 indicating the minimum percentage of the number of parameters
 needed to be reduced. If the parameter reduction procedure fail to reduce this amount,

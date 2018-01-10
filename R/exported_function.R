@@ -335,7 +335,6 @@ summarize_read_paired_end <- function(input_sam_folder_path_0, input_sam_folder_
 #' @return A data.frame saving gene_id, p-value, likelihood test statistics, degree of freedom and gene expression
 #'         for condition 0 and 1.
 #'
-#' @export
 # fit SGNB model-----------------------------------------------------------
 fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, tol = 0.001, times = 100) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
@@ -384,6 +383,8 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @param read_summarized_df The returned data.frame from function \code{\link{summarize_read_single_end}} or
 #'                           \code{\link{summarize_read_paired_end}}.
+#' @param simplify Whether apply model simplification. Default is TRUE.
+#' @param combine Method for calculating global p-value. Could be "Fisher" or "Bonferroni". Default is "Fisher".
 #' @param min_reduce A number between 0 and 1 indicating the minimum percentage of the number of parameters
 #'                   needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
 #'                   then group all read types into one read type. Default is 0.
@@ -397,14 +398,14 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @export
 # fit exact SGNB model-----------------------------------------------------------
-fit_SGNB_exact <- function(read_summarized_df, min_reduce = 0, tol = 0.0001, times = 100) {
-  read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
+fit_SGNB_exact <- function(read_summarized_df, simplify = TRUE, combine = "Fisher", min_reduce = 0,
+                           gene_size_ls = NULL, tol = 0.0001, times = 100) {
 
+  read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
   # detect sample number under two conditions
   sample_num_0 <- sum(stringr::str_detect(names(read_summarized_df), pattern = 'group0_'))
   sample_num_1 <- sum(stringr::str_detect(names(read_summarized_df), pattern = 'group1_'))
   group_sample_num <- c(sample_num_0, sample_num_1)
-
   # calculate TMM normalization factor
   TMM_dt <- data.table::data.table(read_summarized_df)
   TMM_dt[, read_type := NULL]
@@ -413,33 +414,50 @@ fit_SGNB_exact <- function(read_summarized_df, min_reduce = 0, tol = 0.0001, tim
   lib_size <- colSums(TMM_dt)
   tmm_norm_factor <- TMM(as.data.frame(TMM_dt), lib_size)
   lib_size_norm <- lib_size * tmm_norm_factor
-
   # group read types
-  read_type_group_df <- create_read_type_group_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
-                                                   read_summarized_df$read_type, min_reduce)
-  read_count_dt <- data.table::data.table(read_summarized_df)
-  read_type_group_dt <- data.table::data.table(read_type_group_df)
-  read_count_dt <- merge(read_count_dt, read_type_group_dt, by = c("read_gene", "read_type"))
-  read_count_dt[, read_type := NULL]
-  read_count_dt <- read_count_dt[, lapply(.SD, sum), by = c("read_gene", "read_type_group")]
-  read_count_df <- as.data.frame(read_count_dt)
-
+  if (simplify == TRUE) {
+    read_type_group_df <- create_read_type_group_cpp(unique(read_summarized_df$read_gene), read_summarized_df$read_gene,
+                                                     read_summarized_df$read_type, min_reduce)
+    read_count_dt <- data.table::data.table(read_summarized_df)
+    read_type_group_dt <- data.table::data.table(read_type_group_df)
+    read_count_dt <- merge(read_count_dt, read_type_group_dt, by = c("read_gene", "read_type"))
+    read_count_dt[, read_type := NULL]
+    read_count_dt <- read_count_dt[, lapply(.SD, sum), by = c("read_gene", "read_type_group")]
+    read_count_df <- as.data.frame(read_count_dt)
+  } else if (simplify == FALSE) {
+    read_count_df <- read_summarized_df
+    read_count_df$read_type <- seq(1, dim(read_count_df)[1])
+    names(read_count_df)[2] <- "read_type_group"
+  }
   # fit model
   temp <- fit_SGNB_exact_cpp(read_count_df$read_gene, read_count_df$read_type_group, as.matrix(read_count_df[-c(1, 2)]),
                              lib_size_norm, group_sample_num, tol, times)
   # summarize results
   temp_result <- temp$results
   temp_pseudo_data <- temp$`pseudo data`
-  res_pvalue <- aggregate(p_value ~ gene_id, temp_result, function(x) -2 * sum(log(x)))
-  names(res_pvalue)[2] <- "pvalue_combine"
-  res_degree <- aggregate(p_value ~ gene_id, temp_result, function(x) 2 * length(x))
-  names(res_degree)[2] <- "degree"
+  if (combine == "Fisher") {
+    res_pvalue <- aggregate(p_value ~ gene_id, temp_result,
+                            function(x) pchisq(-2 * sum(log(x), na.rm = TRUE), df = 2 * sum(!is.na(x)), lower.tail = FALSE))
+  } else if (combine == "Bonferroni") {
+    res_pvalue <- aggregate(p_value ~ gene_id, temp_result, function(x) min(1, min(x * sum(!is.na(x)))))
+  }
   res_theta0 <- aggregate(theta0 ~ gene_id, temp_result, sum)
   res_theta1 <- aggregate(theta1 ~ gene_id, temp_result, sum)
-  res <- merge(res_pvalue, res_degree, by.all = 'gene_id', all = TRUE)
-  res <- merge(res, res_theta0, by.all = "gene_id", all = TRUE)
+  res <- merge(res_pvalue, res_theta0, by.all = "gene_id", all = TRUE)
   res <- merge(res, res_theta1, by.all = "gene_id", all = TRUE)
-  res$p_value <- pchisq(res$pvalue_combine, df = res$degree, lower.tail = FALSE)
+  if (is.null(gene_size_ls)) {
+    gene_size_df <- data.frame(gene_id = names(gene_size), size = unlist(gene_size))
+    res <- merge(res, gene_size_df, by = 'gene_id', all.x = TRUE)
+    res$theta0 <- res$theta0 / res$size
+    res$theta1 <- res$theta1 / res$size
+  }
+  else if (!is.null(gene_size_ls)) {
+    gene_size_df <- data.frame(gene_id = names(gene_size_ls), size = unlist(gene_size_ls))
+    res <- merge(res, gene_size_df, by = 'gene_id', all.x = TRUE)
+    res$theta0 <- res$theta0 / res$size
+    res$theta1 <- res$theta1 / res$size
+  }
+  res <- res[, colnames(res) != "size"]
   res
 }
 

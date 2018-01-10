@@ -13,8 +13,8 @@ create_read_type_group_cpp <- function(read_gene_unique_vec, read_gene_vec, read
     .Call('_SGNB_create_read_type_group_cpp', PACKAGE = 'SGNB', read_gene_unique_vec, read_gene_vec, read_type_vec, min_reduce)
 }
 
-fit_SGNB_cpp <- function(read_gene_unique_vec, read_gene_vec, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times) {
-    .Call('_SGNB_fit_SGNB_cpp', PACKAGE = 'SGNB', read_gene_unique_vec, read_gene_vec, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times)
+fit_SGNB_cpp <- function(read_gene_unique_vec, read_gene_vec, phi, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times) {
+    .Call('_SGNB_fit_SGNB_cpp', PACKAGE = 'SGNB', read_gene_unique_vec, read_gene_vec, phi, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times)
 }
 
 fit_SGNB_exact_cpp <- function(read_gene_vec, read_type_vec, data_matrix, lib_size_norm, group_sample_num, tol, times) {

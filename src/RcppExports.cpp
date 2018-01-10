@@ -46,20 +46,21 @@ BEGIN_RCPP
 END_RCPP
 }
 // fit_SGNB_cpp
-Rcpp::DataFrame fit_SGNB_cpp(const std::vector<std::string>& read_gene_unique_vec, const std::vector<std::string>& read_gene_vec, Rcpp::NumericMatrix data_matrix, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, Rcpp::List gene_size_ls, double tol, int times);
-RcppExport SEXP _SGNB_fit_SGNB_cpp(SEXP read_gene_unique_vecSEXP, SEXP read_gene_vecSEXP, SEXP data_matrixSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP gene_size_lsSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+Rcpp::DataFrame fit_SGNB_cpp(const std::vector<std::string>& read_gene_unique_vec, const std::vector<std::string>& read_gene_vec, Rcpp::NumericVector phi, Rcpp::NumericMatrix data_matrix, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, Rcpp::List gene_size_ls, double tol, int times);
+RcppExport SEXP _SGNB_fit_SGNB_cpp(SEXP read_gene_unique_vecSEXP, SEXP read_gene_vecSEXP, SEXP phiSEXP, SEXP data_matrixSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP gene_size_lsSEXP, SEXP tolSEXP, SEXP timesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<std::string>& >::type read_gene_unique_vec(read_gene_unique_vecSEXP);
     Rcpp::traits::input_parameter< const std::vector<std::string>& >::type read_gene_vec(read_gene_vecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type phi(phiSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data_matrix(data_matrixSEXP);
     Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lib_size_norm(lib_size_normSEXP);
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type gene_size_ls(gene_size_lsSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< int >::type times(timesSEXP);
-    rcpp_result_gen = Rcpp::wrap(fit_SGNB_cpp(read_gene_unique_vec, read_gene_vec, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times));
+    rcpp_result_gen = Rcpp::wrap(fit_SGNB_cpp(read_gene_unique_vec, read_gene_vec, phi, data_matrix, lib_size_norm, group_sample_num, gene_size_ls, tol, times));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -85,7 +86,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_SGNB_create_block_cpp", (DL_FUNC) &_SGNB_create_block_cpp, 1},
     {"_SGNB_create_read_type_cpp", (DL_FUNC) &_SGNB_create_read_type_cpp, 4},
     {"_SGNB_create_read_type_group_cpp", (DL_FUNC) &_SGNB_create_read_type_group_cpp, 4},
-    {"_SGNB_fit_SGNB_cpp", (DL_FUNC) &_SGNB_fit_SGNB_cpp, 8},
+    {"_SGNB_fit_SGNB_cpp", (DL_FUNC) &_SGNB_fit_SGNB_cpp, 9},
     {"_SGNB_fit_SGNB_exact_cpp", (DL_FUNC) &_SGNB_fit_SGNB_exact_cpp, 7},
     {NULL, NULL, 0}
 };
