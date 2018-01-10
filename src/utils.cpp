@@ -883,7 +883,7 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
   init_theta1 = Rcpp::mean(init_theta1_vec);
   for (int i = 0; i < times; i++) {
     // given delta(phi), estimate theta
-    theta_vec = estimate_theta_em_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, 0.0001, times);
+    theta_vec = estimate_theta_em_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, 0.001, times);
     // calculate percentiles
     for (int j = 0; j < group0_sample_num; j++) {
       percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 1, 0) -
