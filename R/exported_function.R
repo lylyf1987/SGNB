@@ -437,9 +437,9 @@ fit_SGNB_exact <- function(read_summarized_df, simplify = TRUE, combine = "Fishe
   temp_pseudo_data <- temp$`pseudo data`
   if (combine == "Fisher") {
     res_pvalue <- aggregate(p_value ~ gene_id, temp_result,
-                            function(x) pchisq(-2 * sum(log(x), na.rm = TRUE), df = 2 * sum(!is.na(x)), lower.tail = FALSE))
+                            function(x) pchisq(-2 * sum(log(x)), df = 2 * length(x), lower.tail = FALSE))
   } else if (combine == "Bonferroni") {
-    res_pvalue <- aggregate(p_value ~ gene_id, temp_result, function(x) min(1, min(x * sum(!is.na(x)))))
+    res_pvalue <- aggregate(p_value ~ gene_id, temp_result, function(x) min(1, min(x) * length(x)))
   }
   res_theta0 <- aggregate(theta0 ~ gene_id, temp_result, sum)
   res_theta1 <- aggregate(theta1 ~ gene_id, temp_result, sum)
