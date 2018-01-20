@@ -385,6 +385,7 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'                           \code{\link{summarize_read_paired_end}}.
 #' @param simplify Whether apply model simplification. Default is TRUE.
 #' @param combine Method for calculating global p-value. Could be "Fisher" or "Bonferroni". Default is "Fisher".
+#' @param common_disp If set to TRUE, then estimate a common dispersion for all the isoforms of a gene. Defaultis FALSE.
 #' @param min_reduce A number between 0 and 1 indicating the minimum percentage of the number of parameters
 #'                   needed to be reduced. If the parameter reduction procedure fail to reduce this amount,
 #'                   then group all read types into one read type. Default is 0.
@@ -398,9 +399,8 @@ fit_SGNB <- function(read_summarized_df, gene_size_ls = NULL, min_reduce = 0.3, 
 #'
 #' @export
 # fit exact SGNB model-----------------------------------------------------------
-fit_SGNB_exact <- function(read_summarized_df, simplify = TRUE, combine = "Fisher", min_reduce = 0,
-                           gene_size_ls = NULL, tol = 0.01, times = 100) {
-
+fit_SGNB_exact <- function(read_summarized_df, simplify = TRUE, combine = "Bonferroni", common_disp = FALSE,
+                           min_reduce = 0, gene_size_ls = NULL, tol = 0.001, times = 100) {
   read_summarized_df <- read_summarized_df[order(read_summarized_df$read_gene, read_summarized_df$read_type), ]
   # detect sample number under two conditions
   sample_num_0 <- sum(stringr::str_detect(names(read_summarized_df), pattern = 'group0_'))
@@ -430,11 +430,17 @@ fit_SGNB_exact <- function(read_summarized_df, simplify = TRUE, combine = "Fishe
     names(read_count_df)[2] <- "read_type_group"
   }
   # fit model
-  temp <- fit_SGNB_exact_cpp(read_count_df$read_gene, read_count_df$read_type_group, as.matrix(read_count_df[-c(1, 2)]),
-                             lib_size_norm, group_sample_num, tol, times)
+  if (common_disp == FALSE) {
+    temp <- fit_SGNB_exact_cpp(read_count_df$read_gene, read_count_df$read_type_group, as.matrix(read_count_df[-c(1, 2)]),
+                               lib_size_norm, group_sample_num, tol, times)
+  } else if (common_disp == TRUE) {
+    temp <- fit_SGNB_exact_common_cpp(unique(read_count_df$read_gene), read_count_df$read_gene,
+                                      read_count_df$read_type_group, as.matrix(read_count_df[-c(1, 2)]),
+                                      lib_size_norm, group_sample_num, tol, times)
+  }
   # summarize results
   temp_result <- temp$results
-  temp_pseudo_data <- temp$`pseudo data`
+  #temp_pseudo_data <- temp$`pseudo data`
   if (combine == "Fisher") {
     res_pvalue <- aggregate(p_value ~ gene_id, temp_result,
                             function(x) pchisq(-2 * sum(log(x)), df = 2 * length(x), lower.tail = FALSE))

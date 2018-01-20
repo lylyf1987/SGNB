@@ -600,6 +600,16 @@ double cll_delta(Rcpp::NumericVector data,
   res = cll(data, r);
   return res;
 }
+//[[Rcpp::export]]
+double cll_delta_all(Rcpp::NumericVector data,
+                     int group0_sample_num,
+                     double delta) {
+  double res;
+  Rcpp::NumericVector data0(data.begin(), std::next(data.begin(), group0_sample_num));
+  Rcpp::NumericVector data1(std::next(data.begin(), group0_sample_num), data.end());
+  res = cll_delta(data0, delta) + cll_delta(data1, delta);
+  return res;
+}
 // derivertive of conditional log likelihood function of r for single group
 double cll_d(Rcpp::NumericVector data,
              double r) {
@@ -793,6 +803,7 @@ double estimate_delta_newton_exact(Rcpp::NumericVector data,
   }
   return delta_new;
 }
+//[[Rcpp::export]]
 double estimate_delta_search_exact(Rcpp::NumericVector data,
                                    Rcpp::IntegerVector group_sample_num,
                                    double tol,
@@ -805,7 +816,7 @@ double estimate_delta_search_exact(Rcpp::NumericVector data,
   Rcpp::NumericVector data1(std::next(data.begin(), group0_sample_num), data.end());
   gr = (1 + std::sqrt(5)) / 2;
   xl = 0.0001;
-  xu = 0.9999;
+  xu = 0.999;
   //d = (gr - 1) * (xu - xl);
   //x1 = xl + d;
   //x2 = xu - d;
@@ -816,6 +827,48 @@ double estimate_delta_search_exact(Rcpp::NumericVector data,
     x2 = xu - d;
     cll_x2 = cll_delta(data0, x2) + cll_delta(data1, x2);
     cll_x1 = cll_delta(data0, x1) + cll_delta(data1, x1);
+    //cll_xl = cll_delta(data0, xl) + cll_delta(data1, xl);
+    //cll_xu = cll_delta(data0, xu) + cll_delta(data1, xu);
+    if (cll_x1 < cll_x2) {
+      xu = x1;
+      //cll_xu = cll_delta(data0, xu) + cll_delta(data1, xu);
+      //x1 = x2 - (0.5 * (std::pow(x2 - xl, 2) * (cll_x2 - cll_xu) - (std::pow(x2 - xu, 2) * (cll_x2 - cll_xl)))) /
+        //((x2 - xl) * (cll_x2 - cll_xu) - (x2 - xu) * (cll_x2 - cll_xl));
+    } else {
+      xl = x2;
+      //cll_xl = cll_delta(data0, xl) + cll_delta(data1, xl);
+      //x2 = x1 - (0.5 * (std::pow(x1 - xl, 2) * (cll_x1 - cll_xu) - (std::pow(x1 - xu, 2) * (cll_x1 - cll_xl)))) /
+        //((x1 - xl) * (cll_x1 - cll_xu) - (x1 - xu) * (cll_x1 - cll_xl));
+    }
+  }
+  return (xl + xu) / 2;
+}
+//[[Rcpp::export]]
+double estimate_delta_common_search_exact(Rcpp::NumericMatrix data,
+                                          Rcpp::IntegerVector group_sample_num,
+                                          double tol,
+                                          int times) {
+  double gr, xl, xu, x1, x2, d;
+  double cll_x1 = 0, cll_x2 = 0, cll_xl, cll_xu;
+  int group0_sample_num = group_sample_num[0];
+  int iter = 0;
+  gr = (1 + std::sqrt(5)) / 2;
+  xl = 0.0001;
+  xu = 0.9999;
+  //d = (gr - 1) * (xu - xl);
+  //x1 = xl + d;
+  //x2 = xu - d;
+  while ((std::abs(xu - xl) > tol) && iter < times) {
+    iter++;
+    d = (gr - 1) * (xu - xl);
+    x1 = xl + d;
+    x2 = xu - d;
+    for (unsigned int i = 0; i < data.nrow(); ++i) {
+      cll_x2 = cll_x2 + cll_delta_all(data.row(i), group0_sample_num, x2);
+      cll_x1 = cll_x1 + cll_delta_all(data.row(i), group0_sample_num, x1);
+    }
+    //cll_x2 = cll_delta(data0, x2) + cll_delta(data1, x2);
+    //cll_x1 = cll_delta(data0, x1) + cll_delta(data1, x1);
     //cll_xl = cll_delta(data0, xl) + cll_delta(data1, xl);
     //cll_xu = cll_delta(data0, xu) + cll_delta(data1, xu);
     if (cll_x1 < cll_x2) {
@@ -863,6 +916,8 @@ double gen_pseudo_linearinter(double percent, double delta, double m, double the
   }
   return pseudo_count;
 }
+
+//[[Rcpp::export]]
 Rcpp::List gen_pseudo(Rcpp::NumericVector data,
                       Rcpp::NumericVector lib_size_norm,
                       Rcpp::IntegerVector group_sample_num,
@@ -883,17 +938,27 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
   init_theta1 = Rcpp::mean(init_theta1_vec);
   for (int i = 0; i < times; i++) {
     // given delta(phi), estimate theta
-    theta_vec = estimate_theta_em_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, 0.001, times);
+    theta_vec = estimate_theta_em_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, tol, times);
     // calculate percentiles
     for (int j = 0; j < group0_sample_num; j++) {
       percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 1, 0) -
         (0.5) * R::dnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 0);
-      percent_vec[j] = percent;
+      if (percent == 1) {
+        percent_vec[j] = 0.9999;
+        Rcpp::Rcout << delta_old << std::endl;
+      } else {
+        percent_vec[j] = percent;
+      }
     }
     for (int j = group0_sample_num; j < data.size(); j++) {
       percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[1], 1, 0) -
         (0.5) * R::dnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[1], 0);
-      percent_vec[j] = percent;
+      if (percent == 1) {
+        Rcpp::Rcout << delta_old << std::endl;
+        percent_vec[j] = 0.9999;
+      } else {
+        percent_vec[j] = percent;
+      }
     }
     // calculate pseudodata from m*theta and delta(phi) by linear interpolation
     for (int j = 0; j < group0_sample_num; j++) {
@@ -901,6 +966,11 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
     }
     for (int j = group0_sample_num; j < data.size(); j++) {
       pseudo_data[j] = gen_pseudo_linearinter(percent_vec[j], delta_old, m, theta_vec[1]);
+    }
+    pseudo_data[pseudo_data < 0] = 0;
+    Rcpp::NumericVector::iterator it;
+    for (it = pseudo_data.begin(); it != pseudo_data.end(); it++) {
+      *it = std::round(*it);
     }
     // update delta(phi) using pseudodata
     delta_new = estimate_delta_search_exact(pseudo_data, group_sample_num, tol, times);
@@ -916,6 +986,87 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
                                       Rcpp::_["theta"] = theta_vec);
   return res;
 }
+//[[Rcpp::export]]
+Rcpp::List gen_pseudo_common(Rcpp::NumericMatrix data,
+                             Rcpp::NumericVector lib_size_norm,
+                             Rcpp::IntegerVector group_sample_num,
+                             double m,
+                             double tol,
+                             int times) {
+  Rcpp::NumericMatrix pseudo_data(data.nrow(), data.ncol());
+  Rcpp::NumericMatrix init_theta0(data.nrow(), 1), init_theta1(data.nrow(), 1);
+  Rcpp::NumericMatrix init_theta_mat(data.nrow(), data.ncol());
+  double delta_old, delta_new, percent, err;
+  Rcpp::NumericMatrix theta_mat(data.nrow(), 2);
+  Rcpp::NumericMatrix percent_mat(data.nrow(), data.ncol());
+  int group0_sample_num = group_sample_num[0];
+  // initialize delta(phi) and theta
+  delta_old = estimate_delta_common_search_exact(data, group_sample_num, tol, times);
+  for (unsigned int i = 0; i < init_theta_mat.nrow(); ++i) {
+    init_theta_mat.row(i) = data.row(i) / lib_size_norm;
+  }
+
+  //init_theta_vec = data / lib_size_norm;
+  Rcpp::NumericMatrix init_theta0_mat = init_theta_mat(Rcpp::_, Rcpp::Range(0, group0_sample_num - 1));
+  Rcpp::NumericMatrix init_theta1_mat = init_theta_mat(Rcpp::_, Rcpp::Range(group0_sample_num, init_theta_mat.ncol() - 1));
+  for (unsigned int i = 0; i < init_theta_mat.nrow(); ++i) {
+    init_theta0(i, 0) = Rcpp::mean(init_theta0_mat.row(i));
+    init_theta1(i, 0) = Rcpp::mean(init_theta1_mat.row(i));
+  }
+  //init_theta0 = Rcpp::mean(init_theta0_vec);
+  //init_theta1 = Rcpp::mean(init_theta1_vec);
+  for (int i = 0; i < times; i++) {
+    // given delta(phi), estimate theta
+    for (unsigned int j = 0; j < data.nrow(); ++j) {
+      theta_mat.row(j) = estimate_theta_em_exact(data.row(j), lib_size_norm, group_sample_num,
+                    init_theta0(j, 0), init_theta1(j, 0), delta_old, 0.001, times);
+    }
+    //theta_vec = estimate_theta_em_exact(data, lib_size_norm, group_sample_num, init_theta0, init_theta1, delta_old, 0.001, times);
+    // calculate percentiles
+    for (unsigned int i = 0; i < data.nrow(); ++i) {
+      for (int j = 0; j < group0_sample_num; j++) {
+        percent = R::pnbinom_mu(data(i, j), (1/delta_old) - 1, lib_size_norm[j] * theta_mat(i, 0), 1, 0) -
+          (0.5) * R::dnbinom_mu(data(i, j), (1/delta_old) - 1, lib_size_norm[j] * theta_mat(i, 0), 0);
+        if (percent == 1) {
+          percent_mat(i, j) = 0.99999;
+        } else {
+          percent_mat(i, j) = percent;
+        }
+      }
+      for (int j = group0_sample_num; j < data.ncol(); j++) {
+        percent = R::pnbinom_mu(data(i, j), (1/delta_old) - 1, lib_size_norm[j] * theta_mat(i, 1), 1, 0) -
+          (0.5) * R::dnbinom_mu(data(i, j), (1/delta_old) - 1, lib_size_norm[j] * theta_mat(i, 1), 0);
+        if (percent == 1) {
+          percent_mat(i, j) = 0.99999;
+        } else {
+          percent_mat(i, j) = percent;
+        }
+      }
+    }
+    // calculate pseudodata from m*theta and delta(phi) by linear interpolation
+    for (unsigned int i = 0; i < data.nrow(); ++i) {
+      for (int j = 0; j < group0_sample_num; j++) {
+        pseudo_data(i, j) = gen_pseudo_linearinter(percent_mat(i, j), delta_old, m, theta_mat(i, 0));
+      }
+      for (int j = group0_sample_num; j < data.ncol(); j++) {
+        pseudo_data(i, j) = gen_pseudo_linearinter(percent_mat(i, j), delta_old, m, theta_mat(i, 1));
+      }
+    }
+    // update delta(phi) using pseudodata
+    delta_new = estimate_delta_common_search_exact(pseudo_data, group_sample_num, tol, times);
+    err = std::abs((delta_new - delta_old) / delta_old);
+    if (err < tol) {
+      break;
+    } else {
+      delta_old = delta_new;
+    }
+  }
+  Rcpp::List res = Rcpp::List::create(Rcpp::_["pseudo_data"] = pseudo_data,
+                                      Rcpp::_["delta"] = delta_new,
+                                      Rcpp::_["theta"] = theta_mat);
+  return res;
+}
+
 // conditional likelihood Z0|Z0+Z1 for exact test, r = (1/phi)
 double cl(double z0, double z, double delta, Rcpp::IntegerVector group_sample_num) {
   int n0 = group_sample_num[0];
@@ -1468,11 +1619,6 @@ Rcpp::List fit_SGNB_exact_cpp (const std::vector<std::string>& read_gene_vec,
       // generate pseudo data
       Rcpp::List res = gen_pseudo(data, lib_size_norm, group_sample_num, m, tol, times);
       Rcpp::NumericVector pseudo_data_row = res["pseudo_data"];
-      pseudo_data_row[pseudo_data_row < 0] = 0;
-      Rcpp::NumericVector::iterator it;
-      for (it = pseudo_data_row.begin(); it != pseudo_data_row.end(); it++) {
-        *it = std::round(*it);
-      }
       double delta = res["delta"];
       Rcpp::NumericVector theta_vec = res["theta"];
       // exact test
@@ -1504,6 +1650,101 @@ Rcpp::List fit_SGNB_exact_cpp (const std::vector<std::string>& read_gene_vec,
                                                                                    Rcpp::_["theta1"] = theta1_vec,
                                                                                    Rcpp::_["stringsAsFactors"] = false),
                                       Rcpp::_["pseudo data"] = pseudo_data);
+  return res;
+}
+
+
+// fit exact SGNB model with common dispersion and calculate test result--------------------------------------
+//[[Rcpp::export]]
+Rcpp::List fit_SGNB_exact_common_cpp (const std::vector<std::string>& read_gene_unique_vec,
+                                      const std::vector<std::string>& read_gene_vec,
+                                      const std::vector<int>& read_type_vec,
+                                      Rcpp::NumericMatrix data_matrix,
+                                      Rcpp::NumericVector lib_size_norm,
+                                      Rcpp::IntegerVector group_sample_num,
+                                      double tol,
+                                      int times) {
+  double m = 1;
+  int n = lib_size_norm.size();
+  int group0_sample_num = group_sample_num[0];
+  for (int i = 0; i < lib_size_norm.size(); i++) {
+    m = m * std::pow(lib_size_norm[i], (1.0 / n));
+  }
+  // containers for saving result
+  Rcpp::NumericVector p_value_vec, phi_vec, theta0_vec, theta1_vec;
+  //Rcpp::NumericMatrix pseudo_data(data_matrix.nrow(), data_matrix.ncol());
+  std::vector<std::string> gene_vec;
+  std::vector<int> type_vec;
+  //std::fill(pseudo_data.begin(), pseudo_data.end(), NA_REAL);
+  // fit SGNB for each read type
+  std::vector<std::string>::const_iterator read_gene_unique_vec_it;
+  for (read_gene_unique_vec_it = read_gene_unique_vec.begin(); read_gene_unique_vec_it != read_gene_unique_vec.end();
+       ++read_gene_unique_vec_it) {
+    Rcpp::Rcout << *read_gene_unique_vec_it << std::endl;
+    unsigned int g_first, g_last;
+    // find gene range
+    std::vector<std::string>::const_iterator g_first_it, g_last_it;
+    g_first_it = std::find_first_of(read_gene_vec.begin(), read_gene_vec.end(),
+                                    read_gene_unique_vec_it, std::next(read_gene_unique_vec_it, 1));
+    g_last_it = std::find_end(read_gene_vec.begin(), read_gene_vec.end(),
+                              read_gene_unique_vec_it, std::next(read_gene_unique_vec_it, 1));
+    g_first = std::distance(read_gene_vec.begin(), g_first_it);
+    g_last = std::distance(read_gene_vec.begin(), g_last_it);
+    // get gene count data
+    Rcpp::NumericMatrix g_data_matrix = data_matrix(Rcpp::Range(g_first, g_last), Rcpp::_);
+    try {
+      // generate pseudo data
+      Rcpp::List res = gen_pseudo_common(g_data_matrix, lib_size_norm, group_sample_num, m, tol, times);
+      Rcpp::NumericMatrix pseudo_data_mat = res["pseudo_data"];
+      for (unsigned int i = 0; i < pseudo_data_mat.nrow(); ++i) {
+        Rcpp::NumericVector temp = pseudo_data_mat.row(i);
+        temp[temp < 0] = 0;
+        pseudo_data_mat.row(i) = temp;
+      }
+      //pseudo_data(pseudo_data < 0) = 0;
+      Rcpp::NumericMatrix::iterator it;
+      for (it = pseudo_data_mat.begin(); it != pseudo_data_mat.end(); it++) {
+        *it = std::round(*it);
+      }
+      double delta = res["delta"];
+      Rcpp::NumericMatrix theta_mat = res["theta"];
+      // exact test
+      Rcpp::NumericVector p_value(pseudo_data_mat.nrow(), NA_REAL);
+      Rcpp::NumericVector p_value_temp;
+      for (unsigned int i = 0; i < pseudo_data_mat.nrow(); ++i) {
+        p_value_temp = exact_test(pseudo_data_mat.row(i), delta, group_sample_num);
+        p_value[i] = p_value_temp[0];
+      }
+      // save result
+      for (unsigned int i = 0; i < pseudo_data_mat.nrow(); ++i) {
+        p_value_vec.push_back(p_value[i]);
+        phi_vec.push_back(delta / (1 - delta));
+        theta0_vec.push_back(theta_mat(i, 0));
+        theta1_vec.push_back(theta_mat(i, 1));
+        gene_vec.push_back(*read_gene_unique_vec_it);
+        type_vec.push_back(read_type_vec[g_first + i]);
+        //pseudo_data.row(i) = pseudo_data_mat.row(i);
+      }
+    }
+    catch (...) {
+      Rcpp::Rcout << "error gene : " << *read_gene_unique_vec_it << '\n';
+      for (unsigned int i = g_first; i <= g_last ; ++i) {
+        p_value_vec.push_back(NA_REAL);
+        phi_vec.push_back(NA_REAL);
+        theta0_vec.push_back(NA_REAL);
+        theta1_vec.push_back(NA_REAL);
+        gene_vec.push_back(*read_gene_unique_vec_it);
+        type_vec.push_back(1);
+      }
+    }
+  }
+  Rcpp::List res = Rcpp::List::create(Rcpp::_["results"] = Rcpp::DataFrame::create(Rcpp::_["gene_id"] = read_gene_vec,
+                                                                                   Rcpp::_["read_type"] = type_vec,
+                                                                                   Rcpp::_["p_value"] = p_value_vec,
+                                                                                   Rcpp::_["phi"] = phi_vec,
+                                                                                   Rcpp::_["theta0"] = theta0_vec,
+                                                                                   Rcpp::_["theta1"] = theta1_vec,
+                                                                                   Rcpp::_["stringsAsFactors"] = false));
   return res;
 }
 

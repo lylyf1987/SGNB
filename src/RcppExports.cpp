@@ -6,6 +6,79 @@
 
 using namespace Rcpp;
 
+// cll_delta_all
+double cll_delta_all(Rcpp::NumericVector data, int group0_sample_num, double delta);
+RcppExport SEXP _SGNB_cll_delta_all(SEXP dataSEXP, SEXP group0_sample_numSEXP, SEXP deltaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type group0_sample_num(group0_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type delta(deltaSEXP);
+    rcpp_result_gen = Rcpp::wrap(cll_delta_all(data, group0_sample_num, delta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// estimate_delta_search_exact
+double estimate_delta_search_exact(Rcpp::NumericVector data, Rcpp::IntegerVector group_sample_num, double tol, int times);
+RcppExport SEXP _SGNB_estimate_delta_search_exact(SEXP dataSEXP, SEXP group_sample_numSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(estimate_delta_search_exact(data, group_sample_num, tol, times));
+    return rcpp_result_gen;
+END_RCPP
+}
+// estimate_delta_common_search_exact
+double estimate_delta_common_search_exact(Rcpp::NumericMatrix data, Rcpp::IntegerVector group_sample_num, double tol, int times);
+RcppExport SEXP _SGNB_estimate_delta_common_search_exact(SEXP dataSEXP, SEXP group_sample_numSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(estimate_delta_common_search_exact(data, group_sample_num, tol, times));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gen_pseudo
+Rcpp::List gen_pseudo(Rcpp::NumericVector data, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, double m, double tol, int times);
+RcppExport SEXP _SGNB_gen_pseudo(SEXP dataSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP mSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lib_size_norm(lib_size_normSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(gen_pseudo(data, lib_size_norm, group_sample_num, m, tol, times));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gen_pseudo_common
+Rcpp::List gen_pseudo_common(Rcpp::NumericMatrix data, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, double m, double tol, int times);
+RcppExport SEXP _SGNB_gen_pseudo_common(SEXP dataSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP mSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lib_size_norm(lib_size_normSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type m(mSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(gen_pseudo_common(data, lib_size_norm, group_sample_num, m, tol, times));
+    return rcpp_result_gen;
+END_RCPP
+}
 // create_block_cpp
 Rcpp::List create_block_cpp(const Rcpp::DataFrame ann);
 RcppExport SEXP _SGNB_create_block_cpp(SEXP annSEXP) {
@@ -81,13 +154,37 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// fit_SGNB_exact_common_cpp
+Rcpp::List fit_SGNB_exact_common_cpp(const std::vector<std::string>& read_gene_unique_vec, const std::vector<std::string>& read_gene_vec, const std::vector<int>& read_type_vec, Rcpp::NumericMatrix data_matrix, Rcpp::NumericVector lib_size_norm, Rcpp::IntegerVector group_sample_num, double tol, int times);
+RcppExport SEXP _SGNB_fit_SGNB_exact_common_cpp(SEXP read_gene_unique_vecSEXP, SEXP read_gene_vecSEXP, SEXP read_type_vecSEXP, SEXP data_matrixSEXP, SEXP lib_size_normSEXP, SEXP group_sample_numSEXP, SEXP tolSEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type read_gene_unique_vec(read_gene_unique_vecSEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type read_gene_vec(read_gene_vecSEXP);
+    Rcpp::traits::input_parameter< const std::vector<int>& >::type read_type_vec(read_type_vecSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type data_matrix(data_matrixSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type lib_size_norm(lib_size_normSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type group_sample_num(group_sample_numSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type times(timesSEXP);
+    rcpp_result_gen = Rcpp::wrap(fit_SGNB_exact_common_cpp(read_gene_unique_vec, read_gene_vec, read_type_vec, data_matrix, lib_size_norm, group_sample_num, tol, times));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_SGNB_cll_delta_all", (DL_FUNC) &_SGNB_cll_delta_all, 3},
+    {"_SGNB_estimate_delta_search_exact", (DL_FUNC) &_SGNB_estimate_delta_search_exact, 4},
+    {"_SGNB_estimate_delta_common_search_exact", (DL_FUNC) &_SGNB_estimate_delta_common_search_exact, 4},
+    {"_SGNB_gen_pseudo", (DL_FUNC) &_SGNB_gen_pseudo, 6},
+    {"_SGNB_gen_pseudo_common", (DL_FUNC) &_SGNB_gen_pseudo_common, 6},
     {"_SGNB_create_block_cpp", (DL_FUNC) &_SGNB_create_block_cpp, 1},
     {"_SGNB_create_read_type_cpp", (DL_FUNC) &_SGNB_create_read_type_cpp, 4},
     {"_SGNB_create_read_type_group_cpp", (DL_FUNC) &_SGNB_create_read_type_group_cpp, 4},
     {"_SGNB_fit_SGNB_cpp", (DL_FUNC) &_SGNB_fit_SGNB_cpp, 9},
     {"_SGNB_fit_SGNB_exact_cpp", (DL_FUNC) &_SGNB_fit_SGNB_exact_cpp, 7},
+    {"_SGNB_fit_SGNB_exact_common_cpp", (DL_FUNC) &_SGNB_fit_SGNB_exact_common_cpp, 8},
     {NULL, NULL, 0}
 };
 
