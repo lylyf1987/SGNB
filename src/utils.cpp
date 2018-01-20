@@ -945,7 +945,6 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
         (0.5) * R::dnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[0], 0);
       if (percent == 1) {
         percent_vec[j] = 0.9999;
-        Rcpp::Rcout << delta_old << std::endl;
       } else {
         percent_vec[j] = percent;
       }
@@ -954,7 +953,6 @@ Rcpp::List gen_pseudo(Rcpp::NumericVector data,
       percent = R::pnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[1], 1, 0) -
         (0.5) * R::dnbinom_mu(data[j], (1/delta_old) - 1, lib_size_norm[j] * theta_vec[1], 0);
       if (percent == 1) {
-        Rcpp::Rcout << delta_old << std::endl;
         percent_vec[j] = 0.9999;
       } else {
         percent_vec[j] = percent;
@@ -1680,7 +1678,6 @@ Rcpp::List fit_SGNB_exact_common_cpp (const std::vector<std::string>& read_gene_
   std::vector<std::string>::const_iterator read_gene_unique_vec_it;
   for (read_gene_unique_vec_it = read_gene_unique_vec.begin(); read_gene_unique_vec_it != read_gene_unique_vec.end();
        ++read_gene_unique_vec_it) {
-    Rcpp::Rcout << *read_gene_unique_vec_it << std::endl;
     unsigned int g_first, g_last;
     // find gene range
     std::vector<std::string>::const_iterator g_first_it, g_last_it;
