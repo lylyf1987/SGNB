@@ -1090,6 +1090,7 @@ Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rc
     z = z0 + z1;
     n0 = group_sample_num[0];
     n1 = group_sample_num[1];
+    /*
     if (z0 <= ((n0 * z) / (n0 + n1))) {
       for (long i = 0; i <= (long)z0; i++) {
         p_temp = p_temp + cl(i, z, delta, group_sample_num);
@@ -1099,7 +1100,15 @@ Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rc
         p_temp = p_temp + cl(i, z, delta, group_sample_num);
       }
     }
-    p_value.push_back(std::min(2 * p_temp, 1.0));
+    */
+    double p_left = 0;
+    double p_right = 0;
+    for (long i = 0; i <= (long)z0; i++) {
+      p_left += cl(i, z, delta, group_sample_num);
+    }
+    p_right = 1 - p_left + cl(z0, z, delta, group_sample_num);
+    //p_value.push_back(std::min(2 * p_temp, 1.0));
+    p_value.push_back(std::min(1.0, 2 * std::min(p_left, p_right)))
   }
   return p_value;
 }
