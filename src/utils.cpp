@@ -1108,7 +1108,7 @@ Rcpp::NumericVector exact_test(Rcpp::NumericVector pseudo_data, double delta, Rc
     }
     p_right = 1 - p_left + cl(z0, z, delta, group_sample_num);
     //p_value.push_back(std::min(2 * p_temp, 1.0));
-    p_value.push_back(std::min(1.0, 2 * std::min(p_left, p_right)))
+    p_value.push_back(std::min(1.0, 2 * std::min(p_left, p_right)));
   }
   return p_value;
 }
