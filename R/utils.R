@@ -51,7 +51,7 @@ TMM <- function(count_df, lib_size)
   res_len <- dim(count_df)[2]
   lib_size_sort <- sort(lib_size)
   middle_size <- lib_size_sort[((length(lib_size_sort) + 1) / 2)]
-  ref_idx <- which(lib_size == middle_size)
+  ref_idx <- which(lib_size == middle_size)[1]
   for(i in 1 : res_len)
   {
     count_df_curr <- count_df[c(ref_idx, i)]
