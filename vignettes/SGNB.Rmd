@@ -14,20 +14,19 @@ vignette: >
 The splicing graph-based negative binomial model is designed for detecting differentially expressed(DE) genes under
 two conditions, e.g. normal and study.
 
-For doing such an analysis, we need only three steps.
+For doing such an analysis, we need three steps.
 
 1. modify gene annotation file with modify_ann, which will generate block_ann list, gene_range list and gene_size list for later usage.
 
 1. summarize read in sam format, which is the output of TopHat, into read type data.frame with summarize_read_single_end or summarize_read_paired_end.
 
-1. fit model with fit_SGNB, which will provide p-value and expression level for each gene.
+1. fit model with fit_SGNB_exact, which will provide p-value and expression level for each gene.
 
-## Example
+## Example 1
 
-Here is a working example.
+Here is an example.
 
-Suppose we want to detect DE genes for human and our working directory is './'. We need to have a gene annotation 
-file for human, e.g. './human.gtf'. And assume we already maped the single end read by Tophat and have the sam files in two folders, e.g. './group0', './group1'.
+Suppose we want to detect DE genes for human and our working directory is './'. We need to have a gene annotation file for human, e.g. './human.gtf'. And we need to use Tophat and samtools to map and filter the RNA-seq data(in .fastq format) to get the .sam files. Assume that these .sam files are saved in two folders, e.g. './group0', './group1'.
 
 Then we can do the analysis as shown below.
 
@@ -37,5 +36,14 @@ load('./block_ann.RData')
 load('./gene_range.RData')
 load('./gene_size.RData')
 read_summarized <- summarize_read_single_end('./group0', './group1', block_ann, gene_range, run.parrallel = TRUE, core.num = 2)
-res <- fit_SGNB(read_summarized, gene_size, tol = 0.001, times = 100)
+res <- fit_SGNB_exact(read_summarized, gene_size, tol = 0.001, times = 100)
 ```
+
+## Example 2
+
+In this package, we already saved block_ann.RData, gene_range.RData, and gene_size.RData as internal datasets. So for human RNA-seq analysis, we don't need to run "modify_ann" to generate them again. And there is also a real_data.rda file which is the summarized real data after running "summarize_read_single_end" function. So we can use it directly to run "fit_SGNB_exact" as below.
+
+```r
+res <- fit_SGNB_exact(real_data)
+```
+
