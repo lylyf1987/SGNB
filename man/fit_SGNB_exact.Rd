@@ -4,9 +4,16 @@
 \alias{fit_SGNB_exact}
 \title{Fit exact SGNB model}
 \usage{
-fit_SGNB_exact(read_summarized_df, simplify = TRUE, combine = "Bonferroni",
-  common_disp = FALSE, min_reduce = 0, gene_size_ls = NULL, tol = 0.001,
-  times = 100)
+fit_SGNB_exact(
+  read_summarized_df,
+  simplify = TRUE,
+  combine = "Bonferroni",
+  common_disp = FALSE,
+  min_reduce = 0,
+  gene_size_ls = NULL,
+  tol = 0.001,
+  times = 100
+)
 }
 \arguments{
 \item{read_summarized_df}{The returned data.frame from function \code{\link{summarize_read_single_end}} or

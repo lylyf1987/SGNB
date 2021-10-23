@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // cll_delta_all
 double cll_delta_all(Rcpp::NumericVector data, int group0_sample_num, double delta);
 RcppExport SEXP _SGNB_cll_delta_all(SEXP dataSEXP, SEXP group0_sample_numSEXP, SEXP deltaSEXP) {

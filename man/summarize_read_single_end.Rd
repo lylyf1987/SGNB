@@ -4,9 +4,15 @@
 \alias{summarize_read_single_end}
 \title{Summarize RNA-seq single end read}
 \usage{
-summarize_read_single_end(input_sam_folder_path_0, input_sam_folder_path_1,
-  block_ann_ls = NULL, gene_range_ls = NULL, run.parallel = TRUE,
-  core.num = parallel::detectCores(), min_overlap = 1)
+summarize_read_single_end(
+  input_sam_folder_path_0,
+  input_sam_folder_path_1,
+  block_ann_ls = NULL,
+  gene_range_ls = NULL,
+  run.parallel = TRUE,
+  core.num = parallel::detectCores(),
+  min_overlap = 1
+)
 }
 \arguments{
 \item{input_sam_folder_path_0}{A physical path to a folder of mapped RNA-seq samples in .sam format

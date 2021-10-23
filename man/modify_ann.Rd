@@ -4,8 +4,15 @@
 \alias{modify_ann}
 \title{Modify gene annotation file}
 \usage{
-modify_ann(gene_ann_path, line_skip = 5, sep = "\\t", gene_id = "gene_id",
-  block_ann_path, gene_range_path, gene_size_path)
+modify_ann(
+  gene_ann_path,
+  line_skip = 5,
+  sep = "\\t",
+  gene_id = "gene_id",
+  block_ann_path,
+  gene_range_path,
+  gene_size_path
+)
 }
 \arguments{
 \item{gene_ann_path}{A physical path to gene annotation file in gtf format downloaded from Ensembl.}

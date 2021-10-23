@@ -3,8 +3,4 @@
 \docType{package}
 \name{SGNB}
 \alias{SGNB}
-\alias{SGNB-package}
 \title{SGNB: A package for DE analysis}
-\description{
-SGNB: A package for DE analysis
-}
