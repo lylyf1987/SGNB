@@ -31,12 +31,44 @@ Suppose we want to detect DE genes for human and our working directory is './'. 
 Then we can do the analysis as shown below.
 
 ```r
-modify_ann('./human.gtf', line_skip, './block_ann.RData', './gene_range.RData', './gene_size.RData')
+#STEP 1. Load the required R libraries------------------------------------------------------------
+require(SGNB) 
+require(data.table)
+require(Rsubread)
+
+#STEP 2. Summarize gene info from the annotation file-------------------------------------
+# Create 'block_ann.RData', 'gene_range.RData', and 'gene_size.RData' based on 
+# the gene annotation file 'human.gtf'.
+# Run ?modify_ann to obtain the R documentation of the modify_ann function in 
+# SGNB package if needed.
+modify_ann(gene_ann_path='./human.gtf', 
+           line_skip=5, 
+           block_ann_path='./block_ann.RData', 
+           gene_range_path='./gene_range.RData', 
+           gene_size_path='./gene_size.RData')
+           
+# STEP 3. Load summarized gene info files--------------------------------------
 load('./block_ann.RData')
 load('./gene_range.RData')
 load('./gene_size.RData')
-read_summarized <- summarize_read_single_end('./group0', './group1', block_ann, gene_range, run.parrallel = TRUE, core.num = 2)
+
+# STEP 4. Summarize mapped reads into count table----------------------------------------------------------
+# Summarize the mapped reads for two sets of .sam files saved in folders 
+# “group0” and “group1” based on two conditions.
+# Run ?summarize_read_single_end to obtain the R documentation of the 
+# summarize_read_single_end function in SGNB package if needed.
+read_summarized <- summarize_read_single_end('./group0', 
+                                             './group1', 
+                                             block_ann, 
+                                             gene_range, 
+                                             run.parrallel = TRUE, 
+                                             core.num = 2)
+
+# STEP 5：Analyze genes based on SGNB method using fit_SGNB_exact function.
 res <- fit_SGNB_exact(read_summarized, gene_size, tol = 0.001, times = 100)
+
+# Optional STEP 6. Report adjusted p-values using FDR  -------------------------------------------
+res$p_value_ad <- p.adjust(res$p_value, method = 'BH') 
 ```
 
 ## Example 2
