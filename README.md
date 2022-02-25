@@ -13,6 +13,16 @@ For doing such an analysis, we need three steps.
 
 1. fit model with fit_SGNB_exact, which will provide p-value and expression level for each gene.
 
+## Installation Guidance
+
+Please use the command below to install the package. 
+
+```r
+devtools::install_github(repo='https://github.com/lylyf1987/SGNB',build_vignettes = TRUE)
+```
+
+After installation, we can use "??SGNB" to get the package vignettes documentation.
+
 ## Example 1
 
 Here is an example.
